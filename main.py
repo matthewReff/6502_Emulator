@@ -1,3 +1,7 @@
+registers = dict()
+mainMemory = bytearray(2 ** 16)
+
+
 def prompt_for_input():
     try:
         temp = input("> ")
@@ -11,11 +15,15 @@ def prompt_for_input():
 
     return True, temp
 
+def display_registers():
+    print(" PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BSIZC")
+    constructedString = " "
+    constructedString += get_hex_string_from_decimal_number(registers["PC"])
+    constructedString += "  "
+    print(constructedString)
 
-registers = dict()
-mainMemory = bytearray(2 ** 16)
 
-def clearMemory():
+def clear_memory():
     registers["PC"] = 0
     registers["AC"] = 0
     registers["X"] = 0
@@ -24,7 +32,29 @@ def clearMemory():
     registers["SP"] = 0
 
 
-def getHexStringFromDecimalNumber(number):
+def load_values_to_memory(input_string):
+    location_values_pair = input_string.split(':')
+    starting_memory_location = get_decimal_number_from_hex_string(location_values_pair[0])
+    values = location_values_pair[1].strip().split(' ')
+    for value in values:
+        mainMemory[starting_memory_location] = get_decimal_number_from_hex_string(value)
+        starting_memory_location += 1
+
+def display_data_from_range(input_string):
+    address_pair = input_string.split('.')
+    begin_address = get_decimal_number_from_hex_string(address_pair[0])
+    end_address = get_decimal_number_from_hex_string(address_pair[1])
+    begin_address -= begin_address % 8
+
+    for i in range(begin_address, end_address + 1):
+        if i % 8 == 0:
+            print(get_hex_string_from_decimal_number(i), end="   ")
+        print(get_hex_string_from_decimal_number(mainMemory[i]), end=' ')
+        if i % 8 == 7 or i == end_address:
+            print()
+
+
+def get_hex_string_from_decimal_number(number):
     display_number = hex(number)
     display_number = display_number.lstrip("0x")
     display_number = display_number.upper()
@@ -33,43 +63,39 @@ def getHexStringFromDecimalNumber(number):
     return display_number
 
 
+def get_decimal_number_from_hex_string(hex_string):
+    number = int(hex_string, 16)
+    return number
+
+
 def main():
-    clearMemory()
+    clear_memory()
     succeeded, input_string = prompt_for_input()
     while succeeded:
-        if input_string.find(':') != -1:
-            locationValuesPair = input_string.split(':')
-            memoryLoc = int(locationValuesPair[0], 16)
-            values = locationValuesPair[1].strip().split(' ')
-            for value in values:
-                mainMemory[memoryLoc] = int(value, 16)
-                memoryLoc += 1
+        if input_string.find('R') != -1:
+            location = input_string.find('R')
+            outString = input_string[0:location]
+            memLoc = get_decimal_number_from_hex_string(outString)
+            registers["PC"] = memLoc
+            display_registers()
+        elif input_string.find(':') != -1:
+            load_values_to_memory(input_string)
         elif input_string.find('.') != -1:
-            addressPair = input_string.split('.')
-            beginAddress = int(addressPair[0], 16)
-            endaddress = int(addressPair[1], 16)
-            beginAddress -= beginAddress % 8
-
-            for i in range(beginAddress, endaddress + 1):
-                if i % 8 == 0:
-                    print(getHexStringFromDecimalNumber(i), end="   ")
-                print(getHexStringFromDecimalNumber(mainMemory[i]), end=' ')
-                if i % 8 == 7 or i == endaddress:
-                    print()
+            display_data_from_range(input_string)
         else:
             num = int(input_string, 16)
-            print(getHexStringFromDecimalNumber(mainMemory[num]))
+            print(get_hex_string_from_decimal_number(mainMemory[num]))
 
         succeeded, input_string = prompt_for_input()
 
 
-NEGATIVEBITMASK = 0x80;
-OVERFLOWBITMASK = 0x40;
-BREAKEBITMASK = 0x10;
-DECIMALBITMASK = 0x8;
-INTERUPTBITMASK = 0x4;
-ZEROBITMASK = 0x2;
-CARRYBITMASK = 0x1;
+NEGATIVE_BIT_MASK = 0x80;
+OVERFLOW_BIT_MASK = 0x40;
+BREAK_BIT_MASK = 0x10;
+DECIMAL_BIT_MASK = 0x8;
+INTERRUPT_BIT_MASK = 0x4;
+ZERO_BIT_MASK = 0x2;
+CARRY_BIT_MASK = 0x1;
 
 
 
