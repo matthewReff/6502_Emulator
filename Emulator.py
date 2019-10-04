@@ -66,18 +66,18 @@ class T34Emulator:
             self.mainMemory[starting_memory_location] = value
             starting_memory_location += 1
 
-    def display_data_from_range(self, input_string):
-        address_pair = input_string.split('.')
-        begin_address = self.get_decimal_number_from_hex_string(address_pair[0])
-        end_address = self.get_decimal_number_from_hex_string(address_pair[1])
-        begin_address -= begin_address % 8
+    def display_data_from_range(self, starting_address, end_address):
+        starting_address -= starting_address % 8
 
-        for i in range(begin_address, end_address + 1):
+        for i in range(starting_address, end_address + 1):
             if i % 8 == 0:
                 print(self.get_hex_string_from_decimal_number(i), end="   ")
             print(self.get_hex_string_from_decimal_number(self.mainMemory[i]), end=' ')
             if i % 8 == 7 or i == end_address:
                 print()
+
+    def display_single_data(self, location):
+        print(T34Emulator.get_hex_string_from_decimal_number(self.mainMemory[location]))
 
     @staticmethod
     def get_hex_string_from_decimal_number(number):
