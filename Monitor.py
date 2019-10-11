@@ -13,8 +13,7 @@ def main():
             location = input_string.find('R')
             out_string = input_string[0:location]
             mem_loc = T34Emulator.get_decimal_number_from_hex_string(out_string)
-            emulator.registers["PC"] = mem_loc
-            emulator.display_registers()
+            emulator.begin_executation(mem_loc)
 
         elif input_string.find(':') != -1:
             location_values_pair = input_string.split(':')
@@ -24,7 +23,7 @@ def main():
             converted_values = []
             for value in values:
                 converted_values.append(T34Emulator.get_decimal_number_from_hex_string(value))
-            emulator.load_values_to_memory(starting_memory_location, converted_values)
+            emulator.save_values_to_memory(starting_memory_location, converted_values)
 
         elif input_string.find('.') != -1:
             address_pair = input_string.split('.')
@@ -36,9 +35,8 @@ def main():
             num = T34Emulator.get_decimal_number_from_hex_string(input_string)
             emulator.display_single_data(num)
 
-    succeeded, input_string = emulator.prompt_for_input()
+        succeeded, input_string = emulator.prompt_for_input()
 
 
 if __name__ == "__main__":
     main()
-
