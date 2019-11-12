@@ -1,13 +1,13 @@
 class T34Emulator:
     registers = dict()
     mainMemory = bytearray(2 ** 16)
-    NEGATIVE_BIT_MASK = 0x80;
-    OVERFLOW_BIT_MASK = 0x40;
-    BREAK_BIT_MASK = 0x10;
-    DECIMAL_BIT_MASK = 0x8;
-    INTERRUPT_BIT_MASK = 0x4;
-    ZERO_BIT_MASK = 0x2;
-    CARRY_BIT_MASK = 0x1;
+    NEGATIVE_BIT_MASK = 0x80
+    OVERFLOW_BIT_MASK = 0x40
+    BREAK_BIT_MASK = 0x10
+    DECIMAL_BIT_MASK = 0x8
+    INTERRUPT_BIT_MASK = 0x4
+    ZERO_BIT_MASK = 0x2
+    CARRY_BIT_MASK = 0x1
 
     def parse_intel_hex(self, object_file_name):
         values = []
@@ -17,14 +17,13 @@ class T34Emulator:
                 start_code = line[0:1]
                 byte_count = line[1:3]
                 address = line[3:7]
-                record_typr = line[7:9]
+                record_type = line[7:9]
                 num_bytes = self.get_decimal_number_from_hex_string(byte_count)
-                currStart = 9;
+                curr_start = 9;
                 for i in range(0, num_bytes + 1):
-                    temp = line[currStart:currStart+2]
-                    currStart += 2
+                    temp = line[curr_start:curr_start+2]
+                    curr_start += 2
                     values.append(self.get_decimal_number_from_hex_string(temp))
-                check_sum = line[currStart:]
                 self.save_values_to_memory(self.get_decimal_number_from_hex_string(address), values)
                 line = obj_file.readline()
 
