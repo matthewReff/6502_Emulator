@@ -29,6 +29,7 @@ class OperationEnum(Enum):
     EOR = 23
     INC = 24
     INX = 25
+    INY = 55
     JMP = 26
     JSR = 27
     LDA = 28
@@ -58,4 +59,3 @@ class OperationEnum(Enum):
     TXA = 52
     TXS = 53
     TYA = 54
-
