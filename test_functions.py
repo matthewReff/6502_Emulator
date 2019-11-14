@@ -79,7 +79,7 @@ class RunProgram(unittest.TestCase):
             "123456789012345678901234567890123456789012345690"
             " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC"
         correct_output = " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
-                        +" 200  00  BRK   impl -- --  00 00 00 FF 00100000\n"
+                        +" 200  00  BRK   impl -- --  00 00 00 FC 00100000\n"
         self.assertEqual(correct_output, f.getvalue())
 
 

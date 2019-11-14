@@ -59,3 +59,4 @@ class OperationEnum(Enum):
     TXA = 52
     TXS = 53
     TYA = 54
+    NONE = -1

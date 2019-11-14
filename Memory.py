@@ -1,14 +1,9 @@
 from Helper import Helper
 from OpCodeLookup import *
+from Processor import *
 
 
 class Memory:
-    registers = dict()
-
-    mainMemory = bytearray(2 ** 16)
-    opCode = 0
-    operand1 = -1
-    operand2 = -1
     FULL_BIT_MASK = 0xFF
     NEGATIVE_BIT_MASK = 0x80
     OVERFLOW_BIT_MASK = 0x40
@@ -17,6 +12,14 @@ class Memory:
     INTERRUPT_BIT_MASK = 0x4
     ZERO_BIT_MASK = 0x2
     CARRY_BIT_MASK = 0x1
+
+    def __init__(self):
+        self.registers = dict()
+        self.mainMemory = bytearray(2 ** 16)
+        self.opCode = 0
+        self.operand1 = -1
+        self.operand2 = -1
+        self.initialize_registers()
 
     def display_registers(self):
         print(" PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC")
@@ -74,9 +77,7 @@ class Memory:
             starting_memory_location += 1
 
     def execute_at_location(self, starting_location):
-        self.initialize_registers()
-        self.registers["PC"] = starting_location
-        self.display_registers()
+        Processor.execute_at_location(self, starting_location)
 
     def display_data_from_range(self, starting_address, end_address):
         starting_address -= starting_address % 8
