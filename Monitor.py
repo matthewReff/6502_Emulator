@@ -15,7 +15,7 @@ class Monitor:
                 location = input_string.find('R')
                 out_string = input_string[0:location]
                 mem_loc = Helper.get_decimal_number_from_hex_string(out_string)
-                emulator.begin_execution(mem_loc)
+                emulator.execute_at_location(mem_loc)
 
             elif input_string.find(':') != -1:
                 location_values_pair = input_string.split(':')
@@ -52,6 +52,7 @@ class Monitor:
             return False, None
 
         return True, entered_string
+
 
 def main():
     Monitor.main()

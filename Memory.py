@@ -9,6 +9,7 @@ class Memory:
     opCode = 0
     operand1 = -1
     operand2 = -1
+    FULL_BIT_MASK = 0xFF
     NEGATIVE_BIT_MASK = 0x80
     OVERFLOW_BIT_MASK = 0x40
     BREAK_BIT_MASK = 0x10
@@ -72,7 +73,7 @@ class Memory:
             self.mainMemory[starting_memory_location] = value
             starting_memory_location += 1
 
-    def begin_execution(self, starting_location):
+    def execute_at_location(self, starting_location):
         self.initialize_registers()
         self.registers["PC"] = starting_location
         self.display_registers()
@@ -89,8 +90,6 @@ class Memory:
 
     def display_single_data(self, location):
         print(Helper.get_hex_string_from_decimal_number(self.mainMemory[location]))
-
-
 
     def parse_intel_hex(self, object_file_name):
         values = []
@@ -110,3 +109,13 @@ class Memory:
                 self.save_values_to_memory(Helper.get_decimal_number_from_hex_string(address), values)
                 line = obj_file.readline()
 
+    def push_to_stack(self, val):
+        stack_pointer = self.registers["SP"]
+        self.mainMemory[stack_pointer] = val
+        self.registers["SP"] -= 1
+
+    def pop_from_stack(self):
+        self.registers["SP"] += 1
+        stack_pointer = self.registers["SP"]
+        val = self.mainMemory[stack_pointer]
+        return val

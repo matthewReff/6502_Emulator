@@ -25,12 +25,23 @@ class StaticMethodTests(unittest.TestCase):
         string_max = Helper.get_hex_string_from_decimal_number(255)
         self.assertEqual(string_max, "FF")
 
-    def test_cyclical_conversions(self):
+    def test_cyclical_string_to_int(self):
         """
         test that conversion doesn't lose information when making a full loop
         """
         num = Helper.get_decimal_number_from_hex_string(Helper.get_hex_string_from_decimal_number(10))
         self.assertEqual(num, 10)
+
+    def test_twos_compliment(self):
+        hex_num_string = "FF"
+        hex_num = Helper.get_decimal_number_from_hex_string(hex_num_string)
+        twos_comp = Helper.get_twos_compliment(hex_num)
+        self.assertEqual(1, twos_comp)
+
+        hex_num_string = "80"
+        hex_num = Helper.get_decimal_number_from_hex_string(hex_num_string)
+        twos_comp = Helper.get_twos_compliment(hex_num)
+        self.assertEqual(128, twos_comp)
 
 
 class DisplayMemoryLocationsTest(unittest.TestCase):
@@ -64,7 +75,7 @@ class RunProgram(unittest.TestCase):
 
         f = io.StringIO()
         with redirect_stdout(f):
-            SUT.begin_execution(Helper.get_decimal_number_from_hex_string("200"))
+            SUT.execute_at_location(Helper.get_decimal_number_from_hex_string("200"))
             "123456789012345678901234567890123456789012345690"
             " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC"
         correct_output = " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
@@ -82,6 +93,22 @@ class TestInput(unittest.TestCase):
             valid, grabbed_string = Monitor.prompt_for_input()
         self.assertFalse(valid)
 
+
+class TestStackOps(unittest.TestCase):
+    def test_push(self):
+        SUT = Memory()
+        SUT.push_to_stack(10)
+
+        self.assertEqual(SUT.mainMemory[SUT.registers["SP"]+1], 10)
+        self.assertEqual(SUT.registers["SP"], Helper.get_decimal_number_from_hex_string("FF")-1)
+
+    def test_cyclic(self):
+        SUT = Memory()
+        SUT.push_to_stack(10)
+        val = SUT.pop_from_stack()
+
+        self.assertEqual(10, val)
+        self.assertEqual(Helper.get_decimal_number_from_hex_string("FF"), SUT.registers["SP"])
 
 """
 #windows specific attempt at running the program and testing the output aginst the documented intended output
