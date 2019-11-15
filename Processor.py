@@ -60,12 +60,9 @@ class Processor:
             update_mask = memory.NEGATIVE_BIT_MASK | memory.ZERO_BIT_MASK
             Processor.clear_status_bits(memory, update_mask)
             value = memory.registers["X"]
-            if Processor.is_negative(memory, memory.registers["X"]):
-                value = Helper.get_twos_compliment(value)
-                value += 1
-                value = Helper.get_twos_compliment(value)
-            else:
-                value -= 1
+            value = Helper.get_decimal_int_from_signed_byte(value)
+            value -= 1
+            value = Helper.get_signed_byte_from_decimal_int(value)
             Processor.is_negative(memory, value)
             Processor.is_zero(memory, value)
             memory.registers["X"] = value
@@ -111,12 +108,12 @@ class Processor:
 
         elif operation == OperationEnum.LSR:
             update_mask = memory.ZERO_BIT_MASK | memory.CARRY_BIT_MASK
-            Processor.clear_status_bits(update_mask)
+            Processor.clear_status_bits(memory, update_mask)
             carry_bit = memory.registers["AC"] & 1
             if carry_bit == 1:
                 memory.registers["SR"] |= memory.CARRY_BIT_MASK
             memory.registers["AC"] = memory.registers["AC"] >> 1
-            Processor.is_zero(memory.registers["AC"])
+            Processor.is_zero(memory, memory.registers["AC"])
 
         elif operation == OperationEnum.NOP:
             pass
@@ -135,7 +132,7 @@ class Processor:
             Processor.is_zero(memory, value)
             Processor.is_negative(memory, value)
 
-        elif operation == OperationEnum.PHP:
+        elif operation == OperationEnum.PLP:
             value = memory.pop_from_stack()
             memory.registers["SR"] = value
 
@@ -181,7 +178,7 @@ class Processor:
         elif operation == OperationEnum.SEC:
             memory.registers["SR"] |= memory.CARRY_BIT_MASK
 
-        elif operation == OperationEnum.SEC:
+        elif operation == OperationEnum.SED:
             memory.registers["SR"] |= memory.DECIMAL_BIT_MASK
 
         elif operation == OperationEnum.SEI:
@@ -213,7 +210,7 @@ class Processor:
             Processor.is_negative(memory, memory.registers["AC"])
 
         elif operation == OperationEnum.TXS:
-            memory.registers["X"] = memory.registers["SR"]
+            memory.registers["SP"] = memory.registers["X"]
 
     @staticmethod
     def clear_status_bits(memory, mask_to_clear):
