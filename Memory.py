@@ -1,17 +1,17 @@
 from Helper import Helper
 from OpCodeLookup import *
-from Processor import *
 
 
 class Memory:
     FULL_BIT_MASK = 0xFF
-    NEGATIVE_BIT_MASK = 0x80
-    OVERFLOW_BIT_MASK = 0x40
-    BREAK_BIT_MASK = 0x10
-    DECIMAL_BIT_MASK = 0x8
-    INTERRUPT_BIT_MASK = 0x4
-    ZERO_BIT_MASK = 0x2
-    CARRY_BIT_MASK = 0x1
+    NEGATIVE_BIT_MASK = 1 << 7
+    OVERFLOW_BIT_MASK = 1 << 6
+    DUMMY_BIT_MASK = 1 << 5
+    BREAK_BIT_MASK = 1 << 4
+    DECIMAL_BIT_MASK = 1 << 3
+    INTERRUPT_BIT_MASK = 1 << 2
+    ZERO_BIT_MASK = 1 << 1
+    CARRY_BIT_MASK = 1 << 0
 
     def __init__(self):
         self.registers = dict()
@@ -21,8 +21,11 @@ class Memory:
         self.operand2 = -1
         self.initialize_registers()
 
-    def display_registers(self):
+    @staticmethod
+    def display_register_header():
         print(" PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC")
+
+    def display_registers(self):
         constructed_string = " "
         constructed_string += Helper.get_hex_string_from_decimal_number(self.registers["PC"])
         constructed_string += "  "
@@ -31,10 +34,10 @@ class Memory:
         constructed_string += str(OpCodeLookup.lookupTable[self.opCode][0].name)
         constructed_string += "   "
         address_spacing = str(OpCodeLookup.lookupTable[self.opCode][1].name)
-        while len(address_spacing) < 5:
-            address_spacing += " "
+        while len(address_spacing) < 4:
+            address_spacing = " " + address_spacing
         constructed_string += address_spacing
-        address_spacing += " "
+        constructed_string += " "
         if self.operand1 == -1:
             constructed_string += "--"
         else:
@@ -55,12 +58,11 @@ class Memory:
         constructed_string += Helper.get_hex_string_from_decimal_number(self.registers["SP"])
         constructed_string += " "
         shifting_val = self.registers["SR"]
+        bit_string = ""
         for i in range(0, 8):
-            if i == 2:
-                constructed_string += "1"
-            else:
-                constructed_string += str(shifting_val & 1)
+            bit_string += str(shifting_val & 1)
             shifting_val = shifting_val >> 1
+        constructed_string += bit_string[::-1]
         print(constructed_string)
 
     def initialize_registers(self):
@@ -68,16 +70,13 @@ class Memory:
         self.registers["AC"] = 0
         self.registers["X"] = 0
         self.registers["Y"] = 0
-        self.registers["SR"] = 0
+        self.registers["SR"] = Memory.DUMMY_BIT_MASK
         self.registers["SP"] = Helper.get_decimal_number_from_hex_string("FF")
 
     def save_values_to_memory(self, starting_memory_location, values):
         for value in values:
             self.mainMemory[starting_memory_location] = value
             starting_memory_location += 1
-
-    def execute_at_location(self, starting_location):
-        Processor.execute_at_location(self, starting_location)
 
     def display_data_from_range(self, starting_address, end_address):
         starting_address -= starting_address % 8

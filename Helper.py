@@ -15,6 +15,34 @@ class Helper:
         return display_number
 
     @staticmethod
+    def get_signed_byte_from_decimal_int(decimal_int):
+        was_negative = False
+        if decimal_int < 0:
+            was_negative = True
+            decimal_int *= -1
+        construct_string = "0"
+        for i in range(7, -1, -1):
+            if decimal_int - (1 << i) >= 0:
+                construct_string += "1"
+                decimal_int -= (1 << i)
+            else:
+                construct_string += "0"
+        new_byte = int(construct_string, 2)
+        if was_negative:
+            new_byte = Helper.get_twos_compliment(new_byte)
+        return new_byte
+
+    @staticmethod
+    def get_decimal_int_from_signed_byte(signed_byte):
+        new_val = 0
+        if signed_byte >> 7 == 1:
+            new_val = Helper.get_twos_compliment(signed_byte)
+            new_val *= -1
+        else:
+            new_val = signed_byte
+        return new_val
+
+    @staticmethod
     def get_twos_compliment(number):
         new_num_string = ""
         sanity_mask_string = ""
@@ -29,5 +57,5 @@ class Helper:
         new_num = int(new_num_string, 2)
         new_num += 1
         sanity_mask = int(sanity_mask_string, 2)
-        # TODO new_num &= sanity_mask
+        new_num &= sanity_mask
         return new_num

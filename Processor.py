@@ -1,3 +1,4 @@
+import Memory
 from AddressingEnum import *
 from OperationEnum import *
 from OpCodeLookup import *
@@ -19,7 +20,9 @@ class Processor:
             Processor.clear_status_bits(memory, updated_bits)
 
             carry_bit = memory.registers["AC"] >> 7
-            memory.registers["AC"] = memory.registers["AC"] << 1
+            value = memory.registers["AC"] << 1
+            value &= memory.FULL_BIT_MASK
+            memory.registers["AC"] = value
 
             Processor.is_negative(memory, memory.registers["AC"])
             Processor.is_zero(memory, memory.registers["AC"])
@@ -35,7 +38,7 @@ class Processor:
             memory.push_to_stack(high_byte)
             memory.push_to_stack(low_byte)
             memory.push_to_stack(memory.registers["SR"])
-            memory.registers["SR"] = memory.INTERRUPT_BIT_MASK | memory.registers["SR"]
+            memory.registers["SR"] = memory.INTERRUPT_BIT_MASK | memory.BREAK_BIT_MASK | memory.registers["SR"]
 
         elif operation == OperationEnum.CLC:
             update_mask = memory.CARRY_BIT_MASK
@@ -71,12 +74,9 @@ class Processor:
             update_mask = memory.NEGATIVE_BIT_MASK | memory.ZERO_BIT_MASK
             Processor.clear_status_bits(memory, update_mask)
             value = memory.registers["Y"]
-            if Processor.is_negative(memory, memory.registers["Y"]):
-                value = Helper.get_twos_compliment(value)
-                value += 1
-                value = Helper.get_twos_compliment(value)
-            else:
-                value -= 1
+            value = Helper.get_decimal_int_from_signed_byte(value)
+            value -= 1
+            value = Helper.get_signed_byte_from_decimal_int(value)
             Processor.is_negative(memory, value)
             Processor.is_zero(memory, value)
             memory.registers["Y"] = value
@@ -141,10 +141,10 @@ class Processor:
 
         elif operation == OperationEnum.ROL:
             # change to be a ASL including carry bit
+            old_carry = memory.registers["SR"] & memory.CARRY_BIT_MASK
             update_mask = memory.NEGATIVE_BIT_MASK | memory.ZERO_BIT_MASK | memory.CARRY_BIT_MASK
             Processor.clear_status_bits(memory, update_mask)
             value = memory.registers["AC"]
-            old_carry = memory.registers["SR"] & memory.CARRY_BIT_MASK
             new_carry = value >> 7
             if new_carry == 1:
                 memory.registers["SR"] |= memory.CARRY_BIT_MASK
@@ -155,14 +155,15 @@ class Processor:
             if old_carry != 0:
                 value |= 1
 
+            memory.registers["AC"] = value
             Processor.is_negative(memory, value)
             Processor.is_zero(memory, value)
 
         elif operation == OperationEnum.ROR:
+            old_carry = memory.registers["SR"] & memory.CARRY_BIT_MASK
             update_mask = memory.NEGATIVE_BIT_MASK | memory.ZERO_BIT_MASK | memory.CARRY_BIT_MASK
             Processor.clear_status_bits(memory, update_mask)
             value = memory.registers["AC"]
-            old_carry = memory.registers["SR"] & memory.CARRY_BIT_MASK
             new_carry = value & 1
             if new_carry == 1:
                 memory.registers["SR"] |= memory.CARRY_BIT_MASK
@@ -171,8 +172,9 @@ class Processor:
             highest_bit_mask = memory.FULL_BIT_MASK ^ (1 << 8)
             value &= highest_bit_mask
             if old_carry != 0:
-                value |= (1 << 8)
+                value |= (1 << 7)
 
+            memory.registers["AC"] = value
             Processor.is_negative(memory, value)
             Processor.is_zero(memory, value)
 
@@ -203,19 +205,20 @@ class Processor:
         elif operation == OperationEnum.TXA:
             memory.registers["AC"] = memory.registers["X"]
             Processor.is_zero(memory, memory.registers["AC"])
-            Processor.ALU(memory, memory.registers["AC"])
+            Processor.is_negative(memory, memory.registers["AC"])
 
         elif operation == OperationEnum.TYA:
-            memory.registers["AC"] = memory.registers["X"]
+            memory.registers["AC"] = memory.registers["Y"]
             Processor.is_zero(memory, memory.registers["AC"])
-            Processor.ALU(memory, memory.registers["AC"])
+            Processor.is_negative(memory, memory.registers["AC"])
 
         elif operation == OperationEnum.TXS:
             memory.registers["X"] = memory.registers["SR"]
 
     @staticmethod
     def clear_status_bits(memory, mask_to_clear):
-        clear_mask = Memory.FULL_BIT_MASK ^ mask_to_clear
+#        clear_mask = Memory.FULL_BIT_MASK ^ mask_to_clear
+        clear_mask = 0xFF ^ mask_to_clear
         memory.registers["SR"] &= clear_mask
 
     @staticmethod
@@ -241,8 +244,9 @@ class Processor:
         memory.initialize_registers()
         memory.registers["PC"] = starting_location
         current_instruction = OperationEnum.NONE
+        memory.display_register_header()
         while current_instruction != OperationEnum.BRK:
-            op_code = memory.mainMemory[starting_location]
+            op_code = memory.mainMemory[memory.registers["PC"]]
             memory.opCode = op_code
             decode_tuple = OpCodeLookup.lookupTable[op_code]
             current_instruction = decode_tuple[0]

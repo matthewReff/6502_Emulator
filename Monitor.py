@@ -1,5 +1,6 @@
 import sys
 from Memory import *
+from Processor import *
 
 
 class Monitor:
@@ -15,7 +16,7 @@ class Monitor:
                 location = input_string.find('R')
                 out_string = input_string[0:location]
                 mem_loc = Helper.get_decimal_number_from_hex_string(out_string)
-                emulator.execute_at_location(mem_loc)
+                Processor.execute_at_location(emulator, mem_loc)
 
             elif input_string.find(':') != -1:
                 location_values_pair = input_string.split(':')
