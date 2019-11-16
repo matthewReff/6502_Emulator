@@ -125,16 +125,16 @@ class TestPhaseII(unittest.TestCase):
 
             Processor.execute_at_location(SUT, Helper.get_decimal_number_from_hex_string("300"))
         correct_output = \
-        " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
-        " 300  EA  NOP   impl -- --  00 00 00 FF 00100000\n" \
-        " 301  C8  INY   impl -- --  00 00 01 FF 00100000\n" \
-        " 302  98  TYA   impl -- --  01 00 01 FF 00100000\n" \
-        " 303  48  PHA   impl -- --  01 00 01 FE 00100000\n" \
-        " 304  E8  INX   impl -- --  01 01 01 FE 00100000\n" \
-        " 305  E8  INX   impl -- --  01 02 01 FE 00100000\n" \
-        " 306  8A  TXA   impl -- --  02 02 01 FE 00100000\n" \
-        " 307  68  PLA   impl -- --  01 02 01 FF 00100000\n" \
-        " 308  00  BRK   impl -- --  01 02 01 FC 00110100\n"
+            " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
+            " 300  EA  NOP   impl -- --  00 00 00 FF 00100000\n" \
+            " 301  C8  INY   impl -- --  00 00 01 FF 00100000\n" \
+            " 302  98  TYA   impl -- --  01 00 01 FF 00100000\n" \
+            " 303  48  PHA   impl -- --  01 00 01 FE 00100000\n" \
+            " 304  E8  INX   impl -- --  01 01 01 FE 00100000\n" \
+            " 305  E8  INX   impl -- --  01 02 01 FE 00100000\n" \
+            " 306  8A  TXA   impl -- --  02 02 01 FE 00100000\n" \
+            " 307  68  PLA   impl -- --  01 02 01 FF 00100000\n" \
+            " 308  00  BRK   impl -- --  01 02 01 FC 00110100\n"
         self.assertEqual(correct_output, f.getvalue())
 
     def test_example_run_2(self):
@@ -150,19 +150,19 @@ class TestPhaseII(unittest.TestCase):
 
             Processor.execute_at_location(SUT, Helper.get_decimal_number_from_hex_string("300"))
         correct_output = \
-        " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
-        " 300  88  DEY   impl -- --  00 00 FF FF 10100000\n" \
-        " 301  E8  INX   impl -- --  00 01 FF FF 00100000\n" \
-        " 302  98  TYA   impl -- --  FF 01 FF FF 10100000\n" \
-        " 303  0A  ASL      A -- --  FE 01 FF FF 10100001\n" \
-        " 304  2A  ROL      A -- --  FD 01 FF FF 10100001\n" \
-        " 305  48  PHA   impl -- --  FD 01 FF FE 10100001\n" \
-        " 306  8A  TXA   impl -- --  01 01 FF FE 00100001\n" \
-        " 307  6A  ROR      A -- --  80 01 FF FE 10100001\n" \
-        " 308  A8  TAY   impl -- --  80 01 80 FE 10100001\n" \
-        " 309  68  PLA   impl -- --  FD 01 80 FF 10100001\n" \
-        " 30A  AA  TAX   impl -- --  FD FD 80 FF 10100001\n" \
-        " 30B  00  BRK   impl -- --  FD FD 80 FC 10110101\n"
+            " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
+            " 300  88  DEY   impl -- --  00 00 FF FF 10100000\n" \
+            " 301  E8  INX   impl -- --  00 01 FF FF 00100000\n" \
+            " 302  98  TYA   impl -- --  FF 01 FF FF 10100000\n" \
+            " 303  0A  ASL      A -- --  FE 01 FF FF 10100001\n" \
+            " 304  2A  ROL      A -- --  FD 01 FF FF 10100001\n" \
+            " 305  48  PHA   impl -- --  FD 01 FF FE 10100001\n" \
+            " 306  8A  TXA   impl -- --  01 01 FF FE 00100001\n" \
+            " 307  6A  ROR      A -- --  80 01 FF FE 10100001\n" \
+            " 308  A8  TAY   impl -- --  80 01 80 FE 10100001\n" \
+            " 309  68  PLA   impl -- --  FD 01 80 FF 10100001\n" \
+            " 30A  AA  TAX   impl -- --  FD FD 80 FF 10100001\n" \
+            " 30B  00  BRK   impl -- --  FD FD 80 FC 10110101\n"
         self.maxDiff = None
         self.assertEqual(correct_output, f.getvalue())
 
@@ -179,14 +179,14 @@ class TestPhaseII(unittest.TestCase):
 
             Processor.execute_at_location(SUT, Helper.get_decimal_number_from_hex_string("300"))
             correct_output = \
-            " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
-            " 300  38  SEC   impl -- --  00 00 00 FF 00100001\n" \
-            " 301  18  CLC   impl -- --  00 00 00 FF 00100000\n" \
-            " 302  F8  SED   impl -- --  00 00 00 FF 00101000\n" \
-            " 303  D8  CLD   impl -- --  00 00 00 FF 00100000\n" \
-            " 304  78  SEI   impl -- --  00 00 00 FF 00100100\n" \
-            " 305  58  CLI   impl -- --  00 00 00 FF 00100000\n" \
-            " 306  00  BRK   impl -- --  00 00 00 FC 00110100\n"
+                " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
+                " 300  38  SEC   impl -- --  00 00 00 FF 00100001\n" \
+                " 301  18  CLC   impl -- --  00 00 00 FF 00100000\n" \
+                " 302  F8  SED   impl -- --  00 00 00 FF 00101000\n" \
+                " 303  D8  CLD   impl -- --  00 00 00 FF 00100000\n" \
+                " 304  78  SEI   impl -- --  00 00 00 FF 00100100\n" \
+                " 305  58  CLI   impl -- --  00 00 00 FF 00100000\n" \
+                " 306  00  BRK   impl -- --  00 00 00 FC 00110100\n"
 
             self.assertEqual(correct_output, f.getvalue())
 
@@ -197,7 +197,7 @@ class TestPhaseII(unittest.TestCase):
                     temp = os.system(command_string)
 
     def test_misc_implied_ops(self):
-        # "300: 88 E8 98 0A 2A 48 8A 6A A8 68 AA 00"
+        # "300: CA CA 9A CA BA 08 C8 28 E8 8A 4A B8 00"
         f = io.StringIO()
         with redirect_stdout(f):
             SUT = Memory()
@@ -208,20 +208,20 @@ class TestPhaseII(unittest.TestCase):
             SUT.save_values_to_memory(starting, test_values)
             Processor.execute_at_location(SUT, Helper.get_decimal_number_from_hex_string("300"))
             correct_output = \
-            " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
-            " 300  CA  DEX   impl -- --  00 FF 00 FF 10100000\n" \
-            " 301  CA  DEX   impl -- --  00 FE 00 FF 10100000\n" \
-            " 302  9A  TXS   impl -- --  00 FE 00 FE 10100000\n" \
-            " 303  CA  DEX   impl -- --  00 FD 00 FE 10100000\n" \
-            " 304  BA  TSX   impl -- --  00 FE 00 FE 10100000\n" \
-            " 305  08  PHP   impl -- --  00 FE 00 FD 10100000\n" \
-            " 306  C8  INY   impl -- --  00 FE 01 FD 00100000\n" \
-            " 307  28  PLP   impl -- --  00 FE 01 FE 10100000\n" \
-            " 308  E8  INX   impl -- --  00 FF 01 FE 10100000\n" \
-            " 309  8A  TXA   impl -- --  FF FF 01 FE 10100000\n" \
-            " 30A  4A  LSR      A -- --  7F FF 01 FE 10100001\n" \
-            " 30B  B8  CLV   impl -- --  7F FF 01 FE 10100001\n" \
-            " 30C  00  BRK   impl -- --  7F FF 01 FB 10110101\n"
+                " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
+                " 300  CA  DEX   impl -- --  00 FF 00 FF 10100000\n" \
+                " 301  CA  DEX   impl -- --  00 FE 00 FF 10100000\n" \
+                " 302  9A  TXS   impl -- --  00 FE 00 FE 10100000\n" \
+                " 303  CA  DEX   impl -- --  00 FD 00 FE 10100000\n" \
+                " 304  BA  TSX   impl -- --  00 FE 00 FE 10100000\n" \
+                " 305  08  PHP   impl -- --  00 FE 00 FD 10100000\n" \
+                " 306  C8  INY   impl -- --  00 FE 01 FD 00100000\n" \
+                " 307  28  PLP   impl -- --  00 FE 01 FE 10100000\n" \
+                " 308  E8  INX   impl -- --  00 FF 01 FE 10100000\n" \
+                " 309  8A  TXA   impl -- --  FF FF 01 FE 10100000\n" \
+                " 30A  4A  LSR      A -- --  7F FF 01 FE 10100001\n" \
+                " 30B  B8  CLV   impl -- --  7F FF 01 FE 10100001\n" \
+                " 30C  00  BRK   impl -- --  7F FF 01 FB 10110101\n"
             self.maxDiff = None
             self.assertEqual(correct_output, f.getvalue())
 
