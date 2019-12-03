@@ -111,11 +111,11 @@ class Memory:
 
     def push_to_stack(self, val):
         stack_pointer = self.registers["SP"]
-        self.mainMemory[stack_pointer] = val
+        self.mainMemory[Helper.get_decimal_number_from_hex_string("100") + stack_pointer] = val
         self.registers["SP"] -= 1
 
     def pop_from_stack(self):
         self.registers["SP"] += 1
         stack_pointer = self.registers["SP"]
-        val = self.mainMemory[stack_pointer]
+        val = self.mainMemory[Helper.get_decimal_number_from_hex_string("100") + stack_pointer]
         return val

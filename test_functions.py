@@ -99,7 +99,7 @@ class TestStackOps(unittest.TestCase):
         SUT = Memory()
         SUT.push_to_stack(10)
 
-        self.assertEqual(SUT.mainMemory[SUT.registers["SP"]+1], 10)
+        self.assertEqual(SUT.mainMemory[Helper.get_decimal_number_from_hex_string("100") + SUT.registers["SP"]+1], 10)
         self.assertEqual(SUT.registers["SP"], Helper.get_decimal_number_from_hex_string("FF")-1)
 
     def test_cyclic(self):
