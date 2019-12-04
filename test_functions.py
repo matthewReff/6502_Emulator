@@ -225,6 +225,29 @@ class TestPhaseII(unittest.TestCase):
             self.maxDiff = None
             self.assertEqual(correct_output, f.getvalue())
 
+    def test_example_run_3(self):
+        # "300: 69 10 A2 02 85 02 E6 02 A50200"
+        f = io.StringIO()
+        with redirect_stdout(f):
+            SUT = Memory()
+            starting = Helper.get_decimal_number_from_hex_string("300")
+            test_values = []
+            for i in "69 10 A2 02 85 02 E6 02 A5 02 00".split(" "):
+                test_values.append(Helper.get_decimal_number_from_hex_string(i))
+            SUT.save_values_to_memory(starting, test_values)
+
+            Processor.execute_at_location(SUT, Helper.get_decimal_number_from_hex_string("300"))
+        correct_output = \
+            " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
+            " 300  69  ADC      # 10 --  10 00 00 FF 00100000\n" \
+            " 302  A2  LDX      # 02 --  10 02 00 FF 00100000\n" \
+            " 304  85  STA    zpg 02 --  10 02 00 FF 00100000\n" \
+            " 306  E6  INC    zpg 02 --  10 02 00 FF 00100000\n" \
+            " 308  A5  LDA    zpg 02 --  11 02 00 FF 00100000\n" \
+            " 30A  00  BRK   impl -- --  11 02 00 FC 00110100\n"
+        self.maxDiff = None
+        self.assertEqual(correct_output, f.getvalue())
+
 
 if __name__ == '__main__':
     unittest.main()

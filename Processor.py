@@ -60,7 +60,7 @@ class Processor:
             value = memory.registers["X"]
             value = Helper.get_decimal_int_from_signed_byte(value)
             value -= 1
-            value = Helper.get_signed_byte_from_decimal_int(value)
+            value, is_overflow = Helper.get_signed_byte_from_decimal_int(value)
             Processor.is_negative(memory, value)
             Processor.is_zero(memory, value)
             memory.registers["X"] = value
@@ -71,7 +71,7 @@ class Processor:
             value = memory.registers["Y"]
             value = Helper.get_decimal_int_from_signed_byte(value)
             value -= 1
-            value = Helper.get_signed_byte_from_decimal_int(value)
+            value, is_overflow = Helper.get_signed_byte_from_decimal_int(value)
             Processor.is_negative(memory, value)
             Processor.is_zero(memory, value)
             memory.registers["Y"] = value
@@ -210,6 +210,22 @@ class Processor:
         elif operation == OperationEnum.TXS:
             memory.registers["SP"] = memory.registers["X"]
 
+        elif operation == OperationEnum.ADC:
+            carry_bit = memory.registers["SR"] & Memory.CARRY_BIT_MASK
+            update_mask = Memory.NEGATIVE_BIT_MASK | Memory.ZERO_BIT_MASK | Memory.CARRY_BIT_MASK | Memory.OVERFLOW_BIT_MASK
+            Processor.clear_status_bits(memory, update_mask)
+
+            new_val = Helper.get_decimal_int_from_signed_byte( memory.registers["AC"]) + param1
+            if carry_bit != 0:
+                new_val += 1
+
+            byte_val, is_overflow = Helper.get_signed_byte_from_decimal_int(new_val)
+            byte_val = int(byte_val)
+            Processor.is_negative(memory, byte_val)
+            Processor.is_zero(memory, byte_val)
+            if is_overflow:
+                memory.registers["SR"] |= Memory.OVERFLOW_BIT_MASK
+
     @staticmethod
     def clear_status_bits(memory, mask_to_clear):
 #        clear_mask = Memory.FULL_BIT_MASK ^ mask_to_clear
@@ -248,7 +264,8 @@ class Processor:
             addressing_mode = decode_tuple[1]
 
             num_args, arg1, arg2 = Processor.get_additional_args(memory, addressing_mode)
-
+            memory.operand1 = arg1
+            memory.operand2 = arg2
             Processor.ALU(memory, current_instruction, addressing_mode, arg1, arg2)
             memory.display_registers()
             memory.registers["PC"] += (1 + num_args)
@@ -266,4 +283,7 @@ class Processor:
         elif addressing_mode == AddressingEnum.impl:
             additional_args = 0
 
+        elif addressing_mode == AddressingEnum.zpg:
+            additional_args += 1
+            arg1 = memory.mainMemory[base_PC +1]
         return additional_args, arg1, arg2

@@ -16,6 +16,11 @@ class Helper:
 
     @staticmethod
     def get_signed_byte_from_decimal_int(decimal_int):
+        is_overflow = False
+        if decimal_int > 127 or decimal_int < -128:
+            is_overflow = True
+        decimal_int &= 0b11111111
+
         was_negative = False
         if decimal_int < 0:
             was_negative = True
@@ -30,7 +35,7 @@ class Helper:
         new_byte = int(construct_string, 2)
         if was_negative:
             new_byte = Helper.get_twos_compliment(new_byte)
-        return new_byte
+        return new_byte, is_overflow
 
     @staticmethod
     def get_decimal_int_from_signed_byte(signed_byte):

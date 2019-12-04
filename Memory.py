@@ -17,8 +17,8 @@ class Memory:
         self.registers = dict()
         self.mainMemory = bytearray(2 ** 16)
         self.opCode = 0
-        self.operand1 = -1
-        self.operand2 = -1
+        self.operand1 = None
+        self.operand2 = None
         self.initialize_registers()
 
     @staticmethod
@@ -33,17 +33,17 @@ class Memory:
         constructed_string += "  "
         constructed_string += str(OpCodeLookup.lookupTable[self.opCode][0].name)
         constructed_string += "   "
-        address_spacing = str(OpCodeLookup.lookupTable[self.opCode][1].name)
+        address_spacing = str(OpCodeLookup.lookupTable[self.opCode][1].value[1])
         while len(address_spacing) < 4:
             address_spacing = " " + address_spacing
         constructed_string += address_spacing
         constructed_string += " "
-        if self.operand1 == -1:
+        if self.operand1 is None:
             constructed_string += "--"
         else:
             constructed_string += Helper.get_hex_string_from_decimal_number(self.operand1)
         constructed_string += " "
-        if self.operand2 == -1:
+        if self.operand2 is None:
             constructed_string += "--"
         else:
             constructed_string += Helper.get_hex_string_from_decimal_number(self.operand2)
