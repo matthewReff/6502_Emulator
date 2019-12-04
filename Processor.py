@@ -11,9 +11,7 @@ class Processor:
         self._memory = memory
 
     @staticmethod
-    def ALU(memory, op_code):
-        operation = OpCodeLookup.lookupTable[op_code][0]
-        addressing_mode = OpCodeLookup.lookupTable[op_code][1]
+    def ALU(memory, operation, addressing_mode, param1=None, param2=None):
 
         if operation == OperationEnum.ASL:
             updated_bits = memory.NEGATIVE_BIT_MASK | memory.ZERO_BIT_MASK | memory.CARRY_BIT_MASK
@@ -248,7 +246,24 @@ class Processor:
             decode_tuple = OpCodeLookup.lookupTable[op_code]
             current_instruction = decode_tuple[0]
             addressing_mode = decode_tuple[1]
-            Processor.ALU(memory, op_code)
-            memory.display_registers()
-            memory.registers["PC"] += 1
 
+            num_args, arg1, arg2 = Processor.get_additional_args(memory, addressing_mode)
+
+            Processor.ALU(memory, current_instruction, addressing_mode, arg1, arg2)
+            memory.display_registers()
+            memory.registers["PC"] += (1 + num_args)
+
+    @staticmethod
+    def get_additional_args(memory, addressing_mode):
+        base_PC = memory.registers["PC"]
+        additional_args = 0
+        arg1 = None
+        arg2 = None
+
+        if addressing_mode == AddressingEnum.imp:
+            additional_args += 1
+            arg1 = memory.mainMemory[base_PC + 1]
+        elif addressing_mode == AddressingEnum.impl:
+            additional_args = 0
+
+        return additional_args, arg1, arg2
