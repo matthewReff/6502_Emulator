@@ -57,12 +57,7 @@ class Memory:
         constructed_string += " "
         constructed_string += Helper.get_hex_string_from_decimal_number(self.registers["SP"])
         constructed_string += " "
-        shifting_val = self.registers["SR"]
-        bit_string = ""
-        for i in range(0, 8):
-            bit_string += str(shifting_val & 1)
-            shifting_val = shifting_val >> 1
-        constructed_string += bit_string[::-1]
+        constructed_string += Helper.get_string_from_signed_byte(self.registers["SR"])
         print(constructed_string)
 
     def initialize_registers(self):

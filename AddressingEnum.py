@@ -6,7 +6,7 @@ class AddressingEnum(Enum):
     abs = (1, "abs")
     absX = (2, "abs,X")
     absY = (3, "abs,Y")
-    imp = (4, "#")
+    imm = (4, "#")
     impl = (5, "impl")
     ind = (6, "ind")
     xInd = (7, "X,ind")

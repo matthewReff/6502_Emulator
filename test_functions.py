@@ -63,7 +63,7 @@ class DisplayMemoryLocationsTest(unittest.TestCase):
         with redirect_stdout(f):
             SUT.display_data_from_range(display_start, display_end)
 
-        correct_output = "300   A9 04 85 07 A0 00 84 06 \n" \
+        correct_output =   "300   A9 04 85 07 A0 00 84 06 \n" \
                          + "308   A9 A0 91 06 C8 D0 FB E6 \n" \
                          + "310   07 \n"
         self.assertEqual(correct_output, f.getvalue())
@@ -248,6 +248,28 @@ class TestPhaseII(unittest.TestCase):
         self.maxDiff = None
         self.assertEqual(correct_output, f.getvalue())
 
+    def test_example_run_4(self):
+        # "300: A9 AA 49 55 C9 00 69 01 C9 01"
+        f = io.StringIO()
+        with redirect_stdout(f):
+            SUT = Memory()
+            starting = Helper.get_decimal_number_from_hex_string("300")
+            test_values = []
+            for i in "A9 AA 49 55 C9 00 69 01 C9 01".split(" "):
+                test_values.append(Helper.get_decimal_number_from_hex_string(i))
+            SUT.save_values_to_memory(starting, test_values)
+
+            Processor.execute_at_location(SUT, Helper.get_decimal_number_from_hex_string("300"))
+        correct_output = \
+            " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
+            " 300  A9  LDA      # AA --  AA 00 00 FF 10100000\n" \
+            " 302  49  EOR      # 55 --  FF 00 00 FF 10100000\n" \
+            " 304  C9  CMP      # 00 --  FF 00 00 FF 00100001\n" \
+            " 306  69  ADC      # 01 --  01 00 00 FF 00100001\n" \
+            " 308  C9  CMP      # 01 --  01 00 00 FF 00100011\n" \
+            " 30A  00  BRK   impl -- --  01 00 00 FC 00110111\n"
+        self.maxDiff = None
+        self.assertEqual(correct_output, f.getvalue())
 
 if __name__ == '__main__':
     unittest.main()

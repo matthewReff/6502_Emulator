@@ -38,6 +38,17 @@ class Helper:
         return new_byte, is_overflow
 
     @staticmethod
+    def get_string_from_signed_byte(byte):
+        construct_string = ""
+        for i in range(7, -1, -1):
+            if byte - (1 << i) >= 0:
+                construct_string += "1"
+                byte -= (1 << i)
+            else:
+                construct_string += "0"
+        return construct_string
+
+    @staticmethod
     def get_decimal_int_from_signed_byte(signed_byte):
         new_val = 0
         if signed_byte >> 7 == 1:
@@ -61,6 +72,23 @@ class Helper:
         new_num_string = new_num_string[::-1]
         new_num = int(new_num_string, 2)
         new_num += 1
+        #sanity_mask = int(sanity_mask_string, 2)
+        #new_num &= sanity_mask
+        return new_num
+
+    @staticmethod
+    def get_ones_compliment(number):
+        new_num_string = ""
+        sanity_mask_string = ""
+        for i in range(0, 8):
+            if number & 1 == 1:
+                new_num_string += "0"
+            else:
+                new_num_string += "1"
+            number = number >> 1
+            sanity_mask_string += "1"
+        new_num_string = new_num_string[::-1]
+        new_num = int(new_num_string, 2)
         sanity_mask = int(sanity_mask_string, 2)
         new_num &= sanity_mask
         return new_num

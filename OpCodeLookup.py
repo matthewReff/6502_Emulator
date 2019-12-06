@@ -16,11 +16,11 @@ class OpCodeLookup:
     lookupTable.update({Helper.get_decimal_number_from_hex_string("60"): (OperationEnum.RTS, AddressingEnum.impl)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("70"): (OperationEnum.BVS, AddressingEnum.rel)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("90"): (OperationEnum.BCC, AddressingEnum.rel)})
-    lookupTable.update({Helper.get_decimal_number_from_hex_string("A0"): (OperationEnum.LDY, AddressingEnum.imp)})
+    lookupTable.update({Helper.get_decimal_number_from_hex_string("A0"): (OperationEnum.LDY, AddressingEnum.imm)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("B0"): (OperationEnum.BCS, AddressingEnum.rel)})
-    lookupTable.update({Helper.get_decimal_number_from_hex_string("C0"): (OperationEnum.CPY, AddressingEnum.imp)})
+    lookupTable.update({Helper.get_decimal_number_from_hex_string("C0"): (OperationEnum.CPY, AddressingEnum.imm)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("D0"): (OperationEnum.BNE, AddressingEnum.rel)})
-    lookupTable.update({Helper.get_decimal_number_from_hex_string("E0"): (OperationEnum.CPX, AddressingEnum.imp)})
+    lookupTable.update({Helper.get_decimal_number_from_hex_string("E0"): (OperationEnum.CPX, AddressingEnum.imm)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("F0"): (OperationEnum.BEQ, AddressingEnum.rel)})
 
     # low byte 1
@@ -42,7 +42,7 @@ class OpCodeLookup:
     lookupTable.update({Helper.get_decimal_number_from_hex_string("F1"): (OperationEnum.SBC, AddressingEnum.indY)})
 
     # low byte 2
-    lookupTable.update({Helper.get_decimal_number_from_hex_string("A2"): (OperationEnum.LDX, AddressingEnum.imp)})
+    lookupTable.update({Helper.get_decimal_number_from_hex_string("A2"): (OperationEnum.LDX, AddressingEnum.imm)})
 
     # low byte 4
     lookupTable.update({Helper.get_decimal_number_from_hex_string("24"): (OperationEnum.BIT, AddressingEnum.zpg)})
@@ -109,20 +109,20 @@ class OpCodeLookup:
     lookupTable.update({Helper.get_decimal_number_from_hex_string("F8"): (OperationEnum.SED, AddressingEnum.impl)})
 
     # low byte 9
-    lookupTable.update({Helper.get_decimal_number_from_hex_string("09"): (OperationEnum.ORA, AddressingEnum.imp)})
+    lookupTable.update({Helper.get_decimal_number_from_hex_string("09"): (OperationEnum.ORA, AddressingEnum.imm)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("19"): (OperationEnum.ORA, AddressingEnum.absY)})
-    lookupTable.update({Helper.get_decimal_number_from_hex_string("29"): (OperationEnum.AND, AddressingEnum.imp)})
+    lookupTable.update({Helper.get_decimal_number_from_hex_string("29"): (OperationEnum.AND, AddressingEnum.imm)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("39"): (OperationEnum.AND, AddressingEnum.absY)})
-    lookupTable.update({Helper.get_decimal_number_from_hex_string("49"): (OperationEnum.EOR, AddressingEnum.imp)})
+    lookupTable.update({Helper.get_decimal_number_from_hex_string("49"): (OperationEnum.EOR, AddressingEnum.imm)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("59"): (OperationEnum.EOR, AddressingEnum.absY)})
-    lookupTable.update({Helper.get_decimal_number_from_hex_string("69"): (OperationEnum.ADC, AddressingEnum.imp)})
+    lookupTable.update({Helper.get_decimal_number_from_hex_string("69"): (OperationEnum.ADC, AddressingEnum.imm)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("79"): (OperationEnum.ADC, AddressingEnum.absY)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("99"): (OperationEnum.STA, AddressingEnum.absY)})
-    lookupTable.update({Helper.get_decimal_number_from_hex_string("A9"): (OperationEnum.LDA, AddressingEnum.imp)})
+    lookupTable.update({Helper.get_decimal_number_from_hex_string("A9"): (OperationEnum.LDA, AddressingEnum.imm)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("B9"): (OperationEnum.LDA, AddressingEnum.absY)})
-    lookupTable.update({Helper.get_decimal_number_from_hex_string("C9"): (OperationEnum.CMP, AddressingEnum.imp)})
+    lookupTable.update({Helper.get_decimal_number_from_hex_string("C9"): (OperationEnum.CMP, AddressingEnum.imm)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("D9"): (OperationEnum.CMP, AddressingEnum.absY)})
-    lookupTable.update({Helper.get_decimal_number_from_hex_string("E9"): (OperationEnum.SBC, AddressingEnum.imp)})
+    lookupTable.update({Helper.get_decimal_number_from_hex_string("E9"): (OperationEnum.SBC, AddressingEnum.imm)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("F9"): (OperationEnum.SBC, AddressingEnum.absY)})
 
     # low byte A
