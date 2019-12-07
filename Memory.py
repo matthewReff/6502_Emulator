@@ -78,7 +78,7 @@ class Memory:
 
         for i in range(starting_address, end_address + 1):
             if i % 8 == 0:
-                print(Helper.get_hex_string_from_decimal_number(i), end="   ")
+                print(Helper.get_hex_string_from_decimal_number(i, 3), end="   ")
             print(Helper.get_hex_string_from_decimal_number(self.mainMemory[i]), end=' ')
             if i % 8 == 7 or i == end_address:
                 print()

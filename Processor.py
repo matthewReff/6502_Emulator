@@ -218,11 +218,12 @@ class Processor:
             memory.registers["SP"] = memory.registers["X"]
 
         elif operation == OperationEnum.ADC:
+            # Specifically don't reset the carry flag to mimic bug in hardware implimentation
             carry_bit = memory.registers["SR"] & Memory.CARRY_BIT_MASK
-            update_mask = Memory.NEGATIVE_BIT_MASK | Memory.ZERO_BIT_MASK | Memory.CARRY_BIT_MASK | Memory.OVERFLOW_BIT_MASK
+            update_mask = Memory.NEGATIVE_BIT_MASK | Memory.ZERO_BIT_MASK  | Memory.OVERFLOW_BIT_MASK # | Memory.CARRY_BIT_MASK
             Processor.clear_status_bits(memory, update_mask)
 
-            new_val = Helper.get_decimal_int_from_signed_byte( memory.registers["AC"]) + param1
+            new_val = Helper.get_decimal_int_from_signed_byte(memory.registers["AC"]) + param1
             if carry_bit != 0:
                 new_val += 1
 
@@ -255,8 +256,9 @@ class Processor:
             val = 0
             if addressing_mode == AddressingEnum.imm:
                 val = param1
-            else:
+            elif addressing_mode == AddressingEnum.zpg:
                 val = memory.mainMemory[param1]
+
             memory.registers["AC"] = val
             Processor.is_zero(memory, memory.registers["AC"])
             Processor.is_negative(memory, memory.registers["AC"])
@@ -300,20 +302,39 @@ class Processor:
         elif operation == OperationEnum.CPY:
             Processor.generic_compare(memory, addressing_mode, "Y", param1, param2)
 
+        elif operation == OperationEnum.AND:
+            update_mask = Memory.ZERO_BIT_MASK | Memory.ZERO_BIT_MASK
+            Processor.clear_status_bits(memory, update_mask)
+
+            val = 0
+            if addressing_mode == AddressingEnum.imm:
+                val = param1
+            elif addressing_mode == AddressingEnum.zpg:
+                val = memory.mainMemory[param1]
+
+            memory.registers["AC"] &= val
+            Processor.is_negative(memory, memory.registers["AC"])
+            Processor.is_zero(memory, memory.registers["AC"])
+
+        elif operation == OperationEnum.LDX:
+            pass
+
     @staticmethod
     def generic_compare(memory, addressing_mode, register, param1, param2):
-    # add two's comp to register
-        new_val = Processor.add(memory, memory.registers[register], Helper.get_twos_compliment(param1))
-        Processor.is_zero(memory, new_val)
-        Processor.is_negative(memory, new_val)
+        update_mask = Memory.ZERO_BIT_MASK | Memory.NEGATIVE_BIT_MASK | Memory.CARRY_BIT_MASK
+        Processor.clear_status_bits(memory, update_mask)
+
+        first_val, is_overflow = Helper.get_signed_byte_from_decimal_int(memory.registers[register])
+        second_val = Helper.get_twos_compliment(param1)
+        new_val = Processor.add(memory, first_val, second_val)
+        #if param1 == 0:
+        Processor.clear_status_bits(memory, Memory.NEGATIVE_BIT_MASK)
 
     @staticmethod
     def add(memory, num1, num2):
-        val1, is_overflow = Helper.get_signed_byte_from_decimal_int(num1)
-        val2, is_overflow = Helper.get_signed_byte_from_decimal_int(num2)
 
-        val1_string = Helper.get_string_from_signed_byte(val1)
-        val2_string = Helper.get_string_from_signed_byte(val2)
+        val1_string = Helper.get_string_from_signed_byte(num1)
+        val2_string = Helper.get_string_from_signed_byte(num2)
 
         carry = 0
         finished_string = ""
@@ -327,7 +348,12 @@ class Processor:
             finished_string = str(val) + finished_string
         if carry == 1:
             memory.registers["SR"] |= Memory.CARRY_BIT_MASK
-        return int(finished_string, 2)
+
+        new_val, is_overflow = Helper.get_signed_byte_from_decimal_int(int(finished_string, 2))
+        Processor.is_zero(memory, new_val)
+        Processor.is_negative(memory, new_val)
+
+        return new_val
 
     @staticmethod
     def clear_status_bits(memory, mask_to_clear):
@@ -388,5 +414,5 @@ class Processor:
 
         elif addressing_mode == AddressingEnum.zpg:
             additional_args += 1
-            arg1 = memory.mainMemory[base_PC +1]
+            arg1 = memory.mainMemory[base_PC + 1]
         return additional_args, arg1, arg2

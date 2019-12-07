@@ -6,11 +6,11 @@ class Helper:
         return number
 
     @staticmethod
-    def get_hex_string_from_decimal_number(number):
+    def get_hex_string_from_decimal_number(number, length=2):
         display_number = hex(number)
         display_number = display_number.lstrip("0x")
         display_number = display_number.upper()
-        while len(display_number) < 2:
+        while len(display_number) < length:
             display_number = '0' + display_number
         return display_number
 

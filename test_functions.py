@@ -43,6 +43,15 @@ class StaticMethodTests(unittest.TestCase):
         twos_comp = Helper.get_twos_compliment(hex_num)
         self.assertEqual(128, twos_comp)
 
+    def test_add(self):
+        thing1 = 0b00000001
+        thing2 = 0b00000001
+        tempMem = Memory()
+        result = Processor.add(tempMem, thing1, thing2)
+
+        self.assertEqual(2, result)
+        self.assertEqual(Memory.DUMMY_BIT_MASK, tempMem.registers["SR"])
+
 
 class DisplayMemoryLocationsTest(unittest.TestCase):
     def test_edit_memory_locations(self):
@@ -63,9 +72,10 @@ class DisplayMemoryLocationsTest(unittest.TestCase):
         with redirect_stdout(f):
             SUT.display_data_from_range(display_start, display_end)
 
-        correct_output =   "300   A9 04 85 07 A0 00 84 06 \n" \
-                         + "308   A9 A0 91 06 C8 D0 FB E6 \n" \
-                         + "310   07 \n"
+        correct_output =  \
+                           "300   A9 04 85 07 A0 00 84 06 \n" \
+                           "308   A9 A0 91 06 C8 D0 FB E6 \n" \
+                           "310   07 \n"
         self.assertEqual(correct_output, f.getvalue())
 
 
@@ -79,7 +89,7 @@ class RunProgram(unittest.TestCase):
             "123456789012345678901234567890123456789012345690"
             " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC"
         correct_output = " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
-                        +" 200  00  BRK   impl -- --  00 00 00 FC 00110100\n"
+                         " 200  00  BRK   impl -- --  00 00 00 FC 00110100\n"
         self.assertEqual(correct_output, f.getvalue())
 
 
@@ -270,6 +280,42 @@ class TestPhaseII(unittest.TestCase):
             " 30A  00  BRK   impl -- --  01 00 00 FC 00110111\n"
         self.maxDiff = None
         self.assertEqual(correct_output, f.getvalue())
+
+    def test_example_run_5(self):
+        f = io.StringIO()
+        with redirect_stdout(f):
+            SUT = Memory()
+            starting = Helper.get_decimal_number_from_hex_string("000")
+            test_values = []
+            for i in "01 03 05 07 09 0B 0D 0F".split(" "):
+                test_values.append(Helper.get_decimal_number_from_hex_string(i))
+            SUT.save_values_to_memory(starting, test_values)
+
+            starting = Helper.get_decimal_number_from_hex_string("300")
+            for i in "A5 02 25 07 A6 03 86 08 E6 08 46 00".split(" "):
+                test_values = []
+                test_values.append(Helper.get_decimal_number_from_hex_string(i))
+            SUT.save_values_to_memory(starting, test_values)
+
+            Processor.execute_at_location(SUT, Helper.get_decimal_number_from_hex_string("300"))
+            SUT.display_data_from_range(Helper.get_decimal_number_from_hex_string("000"), Helper.get_decimal_number_from_hex_string("00F"))
+            "000   00 03 05 07 09 0B 0D 0F" \
+            "008   08 00 00 00 00 00 00 00"
+        correct_output = \
+           " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
+           " 300  A5  LDA    zpg 02 --  05 00 00 FF 00100000\n" \
+           " 302  25  AND    zpg 07 --  05 00 00 FF 00100000\n" \
+           " 304  A6  LDX    zpg 03 --  05 07 00 FF 00100000\n" \
+           " 306  86  STX    zpg 08 --  05 07 00 FF 00100000\n" \
+           " 308  E6  INC    zpg 08 --  05 07 00 FF 00100000\n" \
+           " 30A  46  LSR    zpg 00 --  05 07 00 FF 00100011\n" \
+           " 30C  00  BRK   impl -- --  05 00 00 FC 00100111\n" \
+           "000   00 03 05 07 09 0B 0D 0F\n" \
+           "008   08 00 00 00 00 00 00 00\n"
+
+        self.maxDiff = None
+        self.assertEqual(correct_output, f.getvalue())
+
 
 if __name__ == '__main__':
     unittest.main()
