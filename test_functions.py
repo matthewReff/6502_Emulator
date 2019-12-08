@@ -85,11 +85,11 @@ class RunProgram(unittest.TestCase):
         memory = Memory()
         f = io.StringIO()
         with redirect_stdout(f):
-            Processor.execute_at_location(memory, Helper.get_decimal_number_from_hex_string("200"))
+            Processor.execute_at_location(memory, Helper.get_decimal_number_from_hex_string("300"))
             "123456789012345678901234567890123456789012345690"
             " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC"
         correct_output = " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
-                         " 200  00  BRK   impl -- --  00 00 00 FC 00110100\n"
+                         " 300  00  BRK   impl -- --  00 00 00 FC 00110100\n"
         self.assertEqual(correct_output, f.getvalue())
 
 
@@ -148,7 +148,6 @@ class TestPhaseII(unittest.TestCase):
         self.assertEqual(correct_output, f.getvalue())
 
     def test_example_run_2(self):
-        #"300: 88 E8 98 0A 2A 48 8A 6A A8 68 AA 00"
         f = io.StringIO()
         with redirect_stdout(f):
             SUT = Memory()
@@ -292,15 +291,13 @@ class TestPhaseII(unittest.TestCase):
             SUT.save_values_to_memory(starting, test_values)
 
             starting = Helper.get_decimal_number_from_hex_string("300")
+            test_values = []
             for i in "A5 02 25 07 A6 03 86 08 E6 08 46 00".split(" "):
-                test_values = []
                 test_values.append(Helper.get_decimal_number_from_hex_string(i))
             SUT.save_values_to_memory(starting, test_values)
 
             Processor.execute_at_location(SUT, Helper.get_decimal_number_from_hex_string("300"))
             SUT.display_data_from_range(Helper.get_decimal_number_from_hex_string("000"), Helper.get_decimal_number_from_hex_string("00F"))
-            "000   00 03 05 07 09 0B 0D 0F" \
-            "008   08 00 00 00 00 00 00 00"
         correct_output = \
            " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
            " 300  A5  LDA    zpg 02 --  05 00 00 FF 00100000\n" \
@@ -309,9 +306,59 @@ class TestPhaseII(unittest.TestCase):
            " 306  86  STX    zpg 08 --  05 07 00 FF 00100000\n" \
            " 308  E6  INC    zpg 08 --  05 07 00 FF 00100000\n" \
            " 30A  46  LSR    zpg 00 --  05 07 00 FF 00100011\n" \
-           " 30C  00  BRK   impl -- --  05 00 00 FC 00100111\n" \
-           "000   00 03 05 07 09 0B 0D 0F\n" \
-           "008   08 00 00 00 00 00 00 00\n"
+           " 30C  00  BRK   impl -- --  05 07 00 FC 00110111\n" \
+           "000   00 03 05 07 09 0B 0D 0F \n" \
+           "008   08 00 00 00 00 00 00 00 \n"
+
+        self.maxDiff = None
+        self.assertEqual(correct_output, f.getvalue())
+
+    def test_remaining_immediate_and_zero_page(self):
+        f = io.StringIO()
+        with redirect_stdout(f):
+            SUT = Memory()
+
+            starting = Helper.get_decimal_number_from_hex_string("000")
+            test_values = []
+            for i in "01 01 01 01 01 01 01 01 "\
+                     "01 01 01 01 01 01 01 01".split(" "):
+                test_values.append(Helper.get_decimal_number_from_hex_string(i))
+            SUT.save_values_to_memory(starting, test_values)
+
+            starting = Helper.get_decimal_number_from_hex_string("300")
+            test_values = []
+            for i in "09 01 A0 03 A2 03 38 E9 01 65 00 06 01 A0 FF 84 07 24 07 C6 02 45 03 A4 04 A6 05 46 06 05 07 " \
+                     "26 08 66 09 E5 0A 00".split(" "):
+                test_values.append(Helper.get_decimal_number_from_hex_string(i))
+            SUT.save_values_to_memory(starting, test_values)
+
+            Processor.execute_at_location(SUT, Helper.get_decimal_number_from_hex_string("300"))
+            SUT.display_data_from_range(Helper.get_decimal_number_from_hex_string("000"), Helper.get_decimal_number_from_hex_string("00F"))
+
+        correct_output = \
+            " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
+            " 300  09  ORA      # 01 --  01 00 00 FF 00100000\n" \
+            " 302  A0  LDY      # 03 --  01 00 03 FF 00100000\n" \
+            " 304  A2  LDX      # 03 --  01 03 03 FF 00100000\n" \
+            " 306  38  SEC   impl -- --  01 03 03 FF 00100001\n" \
+            " 307  E9  SBC      # 01 --  00 03 03 FF 00100011\n" \
+            " 309  65  ADC    zpg 00 --  02 03 03 FF 00100001\n" \
+            " 30B  06  ASL    zpg 01 --  02 03 03 FF 00100000\n" \
+            " 30D  A0  LDY      # FF --  02 03 FF FF 10100000\n" \
+            " 30F  84  STY    zpg 07 --  02 03 FF FF 10100000\n" \
+            " 311  24  BIT    zpg 07 --  02 03 FF FF 11100000\n" \
+            " 313  C6  DEC    zpg 02 --  02 03 FF FF 01100010\n" \
+            " 315  45  EOR    zpg 03 --  03 03 FF FF 01100000\n" \
+            " 317  A4  LDY    zpg 04 --  03 03 01 FF 01100000\n" \
+            " 319  A6  LDX    zpg 05 --  03 01 01 FF 01100000\n" \
+            " 31B  46  LSR    zpg 06 --  03 01 01 FF 01100011\n" \
+            " 31D  05  ORA    zpg 07 --  FF 01 01 FF 11100001\n" \
+            " 31F  26  ROL    zpg 08 --  FF 01 01 FF 01100000\n" \
+            " 321  66  ROR    zpg 09 --  FF 01 01 FF 01100011\n" \
+            " 323  E5  SBC    zpg 0A --  FE 01 01 FF 10100001\n" \
+            " 325  00  BRK   impl -- --  FE 01 01 FC 10110101\n" \
+            "000   01 02 00 01 01 01 00 FF \n" \
+            "008   03 00 01 01 01 01 01 01 \n"
 
         self.maxDiff = None
         self.assertEqual(correct_output, f.getvalue())

@@ -13,24 +13,28 @@ class Processor:
     @staticmethod
     def ALU(memory, operation, addressing_mode, param1=None, param2=None):
         #modify addresses to fit with addressing mode
-        if addressing_mode == AddressingEnum.zpg:
-            param1 &= Memory.FULL_BIT_MASK
-
-
-
-
 
         if operation == OperationEnum.ASL:
             updated_bits = memory.NEGATIVE_BIT_MASK | memory.ZERO_BIT_MASK | memory.CARRY_BIT_MASK
             Processor.clear_status_bits(memory, updated_bits)
 
-            carry_bit = memory.registers["AC"] >> 7
-            value = memory.registers["AC"] << 1
-            value &= memory.FULL_BIT_MASK
-            memory.registers["AC"] = value
+            val = 0
+            if addressing_mode == AddressingEnum.A:
+                val = memory.registers["AC"]
+            else:
+                val = memory.mainMemory[param1]
 
-            Processor.is_negative(memory, memory.registers["AC"])
-            Processor.is_zero(memory, memory.registers["AC"])
+            carry_bit = val >> 7
+            value = val << 1
+            value &= memory.FULL_BIT_MASK
+
+            if addressing_mode == AddressingEnum.A:
+                memory.registers["AC"] = value
+            else:
+                memory.mainMemory[param1] = value
+
+            Processor.is_negative(memory, value)
+            Processor.is_zero(memory, value)
 
             if carry_bit == 1:
                 memory.registers["SR"] |= memory.CARRY_BIT_MASK
@@ -114,11 +118,18 @@ class Processor:
         elif operation == OperationEnum.LSR:
             update_mask = memory.ZERO_BIT_MASK | memory.CARRY_BIT_MASK
             Processor.clear_status_bits(memory, update_mask)
-            carry_bit = memory.registers["AC"] & 1
-            if carry_bit == 1:
-                memory.registers["SR"] |= memory.CARRY_BIT_MASK
-            memory.registers["AC"] = memory.registers["AC"] >> 1
-            Processor.is_zero(memory, memory.registers["AC"])
+            if addressing_mode == AddressingEnum.A:
+                carry_bit = memory.registers["AC"] & 1
+                if carry_bit == 1:
+                    memory.registers["SR"] |= memory.CARRY_BIT_MASK
+                memory.registers["AC"] = memory.registers["AC"] >> 1
+                Processor.is_zero(memory, memory.registers["AC"])
+            else:
+                carry_bit = memory.mainMemory[param1] & 1
+                if carry_bit == 1:
+                    memory.registers["SR"] |= memory.CARRY_BIT_MASK
+                memory.mainMemory[param1] = memory.mainMemory[param1] >> 1
+                Processor.is_zero(memory, memory.mainMemory[param1])
 
         elif operation == OperationEnum.NOP:
             pass
@@ -146,7 +157,13 @@ class Processor:
             old_carry = memory.registers["SR"] & memory.CARRY_BIT_MASK
             update_mask = memory.NEGATIVE_BIT_MASK | memory.ZERO_BIT_MASK | memory.CARRY_BIT_MASK
             Processor.clear_status_bits(memory, update_mask)
-            value = memory.registers["AC"]
+
+            value = 0
+            if addressing_mode == AddressingEnum.A:
+                value = memory.registers["AC"]
+            else:
+                value = memory.mainMemory[param1]
+
             new_carry = value >> 7
             if new_carry == 1:
                 memory.registers["SR"] |= memory.CARRY_BIT_MASK
@@ -157,7 +174,11 @@ class Processor:
             if old_carry != 0:
                 value |= 1
 
-            memory.registers["AC"] = value
+            if addressing_mode == AddressingEnum.A:
+                memory.registers["AC"] = value
+            else:
+                memory.mainMemory[param1] = value
+
             Processor.is_negative(memory, value)
             Processor.is_zero(memory, value)
 
@@ -165,7 +186,13 @@ class Processor:
             old_carry = memory.registers["SR"] & memory.CARRY_BIT_MASK
             update_mask = memory.NEGATIVE_BIT_MASK | memory.ZERO_BIT_MASK | memory.CARRY_BIT_MASK
             Processor.clear_status_bits(memory, update_mask)
-            value = memory.registers["AC"]
+
+            value = 0
+            if addressing_mode == AddressingEnum.A:
+                value = memory.registers["AC"]
+            else:
+                value = memory.mainMemory[param1]
+
             new_carry = value & 1
             if new_carry == 1:
                 memory.registers["SR"] |= memory.CARRY_BIT_MASK
@@ -176,7 +203,11 @@ class Processor:
             if old_carry != 0:
                 value |= (1 << 7)
 
-            memory.registers["AC"] = value
+            if addressing_mode == AddressingEnum.A:
+                memory.registers["AC"] = value
+            else:
+                memory.mainMemory[param1] = value
+
             Processor.is_negative(memory, value)
             Processor.is_zero(memory, value)
 
@@ -218,12 +249,18 @@ class Processor:
             memory.registers["SP"] = memory.registers["X"]
 
         elif operation == OperationEnum.ADC:
-            # Specifically don't reset the carry flag to mimic bug in hardware implimentation
+            # Specifically don't reset the carry flag to mimic bug in hardware implementation
             carry_bit = memory.registers["SR"] & Memory.CARRY_BIT_MASK
             update_mask = Memory.NEGATIVE_BIT_MASK | Memory.ZERO_BIT_MASK  | Memory.OVERFLOW_BIT_MASK # | Memory.CARRY_BIT_MASK
             Processor.clear_status_bits(memory, update_mask)
 
-            new_val = Helper.get_decimal_int_from_signed_byte(memory.registers["AC"]) + param1
+            val = 0
+            if addressing_mode == AddressingEnum.imm:
+                val = param1
+            else:
+                val = memory.mainMemory[param1]
+
+            new_val = Helper.get_decimal_int_from_signed_byte(memory.registers["AC"]) + val
             if carry_bit != 0:
                 new_val += 1
 
@@ -250,21 +287,7 @@ class Processor:
             Processor.is_negative(memory, memory.registers["X"])
 
         elif operation == OperationEnum.LDA:
-            update_mask = Memory.NEGATIVE_BIT_MASK | Memory.ZERO_BIT_MASK
-            Processor.clear_status_bits(memory, update_mask)
-
-            val = 0
-            if addressing_mode == AddressingEnum.imm:
-                val = param1
-            elif addressing_mode == AddressingEnum.zpg:
-                val = memory.mainMemory[param1]
-
-            memory.registers["AC"] = val
-            Processor.is_zero(memory, memory.registers["AC"])
-            Processor.is_negative(memory, memory.registers["AC"])
-
-        elif operation == OperationEnum.STA:
-            memory.mainMemory[param1] = memory.registers["AC"]
+            Processor.generic_load(memory, addressing_mode, "AC", param1, param2)
 
         elif operation == OperationEnum.INC:
             update_mask = Memory.NEGATIVE_BIT_MASK | Memory.ZERO_BIT_MASK
@@ -317,23 +340,129 @@ class Processor:
             Processor.is_zero(memory, memory.registers["AC"])
 
         elif operation == OperationEnum.LDX:
-            pass
+            Processor.generic_load(memory, addressing_mode, "X", param1, param2)
+
+        elif operation == OperationEnum.LDY:
+            Processor.generic_load(memory, addressing_mode, "Y", param1, param2)
+
+        elif operation == OperationEnum.STX:
+            Processor.generic_store(memory, addressing_mode, "X", param1, param2)
+
+        elif operation == OperationEnum.STY:
+            Processor.generic_store(memory, addressing_mode, "Y", param1, param2)
+
+        elif operation == OperationEnum.STA:
+            Processor.generic_store(memory, addressing_mode, "AC", param1, param2)
+
+        elif operation == OperationEnum.INC:
+            update_mask = Memory.NEGATIVE_BIT_MASK | Memory.ZERO_BIT_MASK
+            Processor.clear_status_bits(memory, update_mask)
+
+            val = memory.mainMemory[param1]
+            val_byte = Helper.get_signed_byte_from_decimal_int(val)
+            one_byte = Helper.get_signed_byte_from_decimal_int(1)
+            new_val = Processor.add(memory, val_byte, one_byte)
+            memory.mainMemory[param1] = new_val
+
+        elif operation == OperationEnum.ORA:
+            update_mask = Memory.NEGATIVE_BIT_MASK | Memory.ZERO_BIT_MASK
+            Processor.clear_status_bits(memory, update_mask)
+
+            val = 0
+            if addressing_mode == AddressingEnum.imm:
+                val = param1
+            else:
+                val = memory.mainMemory[param1]
+
+            val_byte, is_overflow = Helper.get_signed_byte_from_decimal_int(val)
+            memory.registers["AC"] |= val_byte
+            Processor.is_negative(memory, memory.registers["AC"])
+            Processor.is_zero(memory, memory.registers["AC"])
+
+        elif operation == OperationEnum.SBC:
+            update_mask = Memory.NEGATIVE_BIT_MASK | Memory.ZERO_BIT_MASK | Memory.CARRY_BIT_MASK | Memory.OVERFLOW_BIT_MASK
+            Processor.clear_status_bits(memory, update_mask)
+            carry_bit = memory.registers["SR"] & Memory.CARRY_BIT_MASK
+
+            val = 0
+            if addressing_mode == AddressingEnum.imm:
+                val = param1
+            else:
+                val = memory.mainMemory[param1]
+            if carry_bit != 0:
+                val -= 1
+
+            new_val = Processor.add(memory, memory.registers["AC"], val, subtract=True, update_status=True)
+            memory.registers["AC"] = new_val
+
+        elif operation == OperationEnum.BIT:
+            update_mask = Memory.NEGATIVE_BIT_MASK | Memory.ZERO_BIT_MASK | Memory.OVERFLOW_BIT_MASK
+            val = memory.mainMemory[param1]
+
+            new_overflow = (val >> 6) & 1
+            new_negative = (val >> 7) & 1
+
+            if new_negative != 0:
+                memory.registers["SR"] |= Memory.NEGATIVE_BIT_MASK
+
+            if new_overflow != 0:
+                memory.registers["SR"] |= Memory.OVERFLOW_BIT_MASK
+
+            if new_negative & new_overflow == 0:
+                memory.registers["SR"] |= Memory.ZERO_BIT_MASK
+
+        elif operation == OperationEnum.DEC:
+            val = memory.mainMemory[param1]
+            one_byte, is_overflow = Helper.get_signed_byte_from_decimal_int(1)
+            val = Processor.add(memory, val, one_byte, subtract=True, update_status=False)
+            memory.mainMemory[param1] = val
+
+    @staticmethod
+    def generic_store(memory, addressing_mode, register, param1, param2):
+        memory.mainMemory[param1] = memory.registers[register]
+
+    @staticmethod
+    def generic_load(memory, addressing_mode, register, param1, param2):
+        update_mask = Memory.NEGATIVE_BIT_MASK | Memory.ZERO_BIT_MASK
+        Processor.clear_status_bits(memory, update_mask)
+
+        val = 0
+        if addressing_mode == AddressingEnum.imm:
+            val = param1
+        elif addressing_mode == AddressingEnum.zpg:
+            val = memory.mainMemory[param1]
+
+        memory.registers[register] = val
+        Processor.is_zero(memory, memory.registers[register])
+        Processor.is_negative(memory, memory.registers[register])
 
     @staticmethod
     def generic_compare(memory, addressing_mode, register, param1, param2):
+        carry_bit = memory.registers["SR"] & Memory.CARRY_BIT_MASK
         update_mask = Memory.ZERO_BIT_MASK | Memory.NEGATIVE_BIT_MASK | Memory.CARRY_BIT_MASK
         Processor.clear_status_bits(memory, update_mask)
 
-        first_val, is_overflow = Helper.get_signed_byte_from_decimal_int(memory.registers[register])
-        second_val = Helper.get_twos_compliment(param1)
-        new_val = Processor.add(memory, first_val, second_val)
-        #if param1 == 0:
-        Processor.clear_status_bits(memory, Memory.NEGATIVE_BIT_MASK)
+        val = 0
+        if AddressingEnum == AddressingEnum.imm:
+            val = param1
+        else:
+            val = memory.mainMemory[param1]
+
+        Processor.add(memory, memory.registers[register], val, True)
+
+        # bandaid
+        if carry_bit == 0:
+            Processor.clear_status_bits(memory, Memory.NEGATIVE_BIT_MASK)
 
     @staticmethod
-    def add(memory, num1, num2):
+    def add(memory, num1, num2, subtract=False, update_status=True):
+
+        first_negative = Processor.is_negative(memory, num1)
+        second_negative = Processor.is_negative(memory, num2)
 
         val1_string = Helper.get_string_from_signed_byte(num1)
+        if subtract:
+            num2 = Helper.get_twos_compliment(num2)
         val2_string = Helper.get_string_from_signed_byte(num2)
 
         carry = 0
@@ -346,8 +475,10 @@ class Processor:
             else:
                 carry = 0
             finished_string = str(val) + finished_string
-        if carry == 1:
-            memory.registers["SR"] |= Memory.CARRY_BIT_MASK
+
+        if update_status:
+            if carry == 1:
+                memory.registers["SR"] |= Memory.CARRY_BIT_MASK
 
         new_val, is_overflow = Helper.get_signed_byte_from_decimal_int(int(finished_string, 2))
         Processor.is_zero(memory, new_val)
@@ -357,7 +488,6 @@ class Processor:
 
     @staticmethod
     def clear_status_bits(memory, mask_to_clear):
-#        clear_mask = Memory.FULL_BIT_MASK ^ mask_to_clear
         clear_mask = 0xFF ^ mask_to_clear
         memory.registers["SR"] &= clear_mask
 
@@ -409,6 +539,7 @@ class Processor:
         if addressing_mode == AddressingEnum.imm:
             additional_args += 1
             arg1 = memory.mainMemory[base_PC + 1]
+
         elif addressing_mode == AddressingEnum.impl:
             additional_args = 0
 
