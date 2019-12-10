@@ -92,3 +92,10 @@ class Helper:
         sanity_mask = int(sanity_mask_string, 2)
         new_num &= sanity_mask
         return new_num
+
+    @staticmethod
+    def combine_bytes(lo_byte, hi_byte):
+        hi_string = Helper.get_string_from_signed_byte(hi_byte)
+        lo_string = Helper.get_string_from_signed_byte(lo_byte)
+
+        return int(hi_string + lo_string, 2)

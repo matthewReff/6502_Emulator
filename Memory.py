@@ -25,9 +25,9 @@ class Memory:
     def display_register_header():
         print(" PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC")
 
-    def display_registers(self):
+    def display_registers(self, past_pc):
         constructed_string = " "
-        constructed_string += Helper.get_hex_string_from_decimal_number(self.registers["PC"])
+        constructed_string += Helper.get_hex_string_from_decimal_number(past_pc)
         constructed_string += "  "
         constructed_string += Helper.get_hex_string_from_decimal_number(self.opCode)
         constructed_string += "  "
