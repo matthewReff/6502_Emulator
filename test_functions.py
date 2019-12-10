@@ -7,6 +7,8 @@ from contextlib import redirect_stdout
 import io
 import sys
 import os
+from multiprocessing import Process
+import time
 from Monitor import main as testingMain
 
 
@@ -424,6 +426,150 @@ class TestPhaseII(unittest.TestCase):
             "1018   00 20 40 60 80 40 C0 E0 \n" \
             "1020   71 00 00 00 00 00 00 00 \n"
 
+        self.maxDiff = None
+        self.assertEqual(correct_output, f.getvalue())
+
+    def test_inf_run(self):
+        f = io.StringIO()
+        with redirect_stdout(f):
+            SUT = Memory()
+            starting = Helper.get_decimal_number_from_hex_string("300")
+            test_values = []
+            for i in "A9 01 85 00 18 2A A5 00 8D 00 80 A2 03 A0 03 88 D0 FD CA D0 F8 4C 05 03".split(" "):
+                test_values.append(Helper.get_decimal_number_from_hex_string(i))
+            SUT.save_values_to_memory(starting, test_values)
+
+            action_process = Process(target=Processor.execute_at_location, args=(SUT, Helper.get_decimal_number_from_hex_string("300")))
+            action_process.start()
+            action_process.join(timeout=1)
+            #assert still alive after a full second
+            self.assertTrue(action_process.is_alive())
+            action_process.terminate()
+
+        correct_output = \
+            " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
+            " 300  A9  LDA      # 01 --  01 00 00 FF 00100000\n" \
+            " 302  85  STA    zpg 00 --  01 00 00 FF 00100000\n" \
+            " 304  18  CLC   impl -- --  01 00 00 FF 00100000\n" \
+            " 305  2A  ROL      A -- --  02 00 00 FF 00100000\n" \
+            " 306  A5  LDA    zpg 00 --  01 00 00 FF 00100000\n" \
+            " 308  8D  STA    abs 00 80  01 00 00 FF 00100000\n" \
+            " 30B  A2  LDX      # 03 --  01 03 00 FF 00100000\n" \
+            " 30D  A0  LDY      # 03 --  01 03 03 FF 00100000\n" \
+            " 30F  88  DEY   impl -- --  01 03 02 FF 00100000\n" \
+            " 310  D0  BNE    rel FD --  01 03 02 FF 00100000\n" \
+            " 30F  88  DEY   impl -- --  01 03 01 FF 00100000\n" \
+            " 310  D0  BNE    rel FD --  01 03 01 FF 00100000\n" \
+            " 30F  88  DEY   impl -- --  01 03 00 FF 00100010\n" \
+            " 310  D0  BNE    rel FD --  01 03 01 FF 00100010\n" \
+            " 312  CA  DEX   impl -- --  01 02 00 FF 00100000\n" \
+            " 313  D0  BNE    rel F8 --  01 02 00 FF 00100000\n" \
+            " 30D  A0  LDY      # 03 --  01 02 03 FF 00100000\n" \
+            " 310  D0  BNE    rel FD --  01 02 02 FF 00100000\n" \
+            " 30F  88  DEY   impl -- --  01 02 01 FF 00100000\n" \
+            " 310  D0  BNE    rel FD --  01 02 01 FF 00100000\n" \
+            " 30F  88  DEY   impl -- --  01 02 00 FF 00100010\n" \
+            " 310  D0  BNE    rel FD --  01 02 01 FF 00100010\n" \
+            " 312  CA  DEX   impl -- --  01 01 00 FF 00100000\n" \
+            " 313  D0  BNE    rel F8 --  01 01 00 FF 00100000\n" \
+            " 30D  A0  LDY      # 03 --  01 01 03 FF 00100000\n" \
+            " 310  D0  BNE    rel FD --  01 01 02 FF 00100000\n" \
+            " 30F  88  DEY   impl -- --  01 01 01 FF 00100000\n" \
+            " 310  D0  BNE    rel FD --  01 01 01 FF 00100000\n" \
+            " 30F  88  DEY   impl -- --  01 01 00 FF 00100010\n" \
+            " 310  D0  BNE    rel FD --  01 01 01 FF 00100010\n" \
+            " 312  CA  DEX   impl -- --  01 00 00 FF 00100010\n" \
+            " 313  D0  BNE    rel F8 --  01 00 00 FF 00100010\n" \
+            " 315  4C  JMP    abs 05 03  01 00 00 FF 00100010\n" \
+            " 305  2A  ROL      A -- --  02 00 00 FF 00100000\n" \
+            " 306  A5  LDA    zpg 00 --  01 00 00 FF 00100000\n"
+
+    def test_example_run_8(self):
+        f = io.StringIO()
+        with redirect_stdout(f):
+            SUT = Memory()
+
+            starting = Helper.get_decimal_number_from_hex_string("000")
+            test_values = []
+            for i in "00 00 00 00 00 FF 00 00".split(" "):
+                test_values.append(Helper.get_decimal_number_from_hex_string(i))
+            SUT.save_values_to_memory(starting, test_values)
+
+            starting = Helper.get_decimal_number_from_hex_string("100")
+            test_values = []
+            for i in "00 11 22 33 44 55 66 77".split(" "):
+                test_values.append(Helper.get_decimal_number_from_hex_string(i))
+            SUT.save_values_to_memory(starting, test_values)
+
+            starting = Helper.get_decimal_number_from_hex_string("300")
+            test_values = []
+            for i in "A2 01 A0 01 A9 05 85 01 8C 05 07 A1 00 86 02 A2 0A 8E 04 07 B1 01".split(" "):
+                test_values.append(Helper.get_decimal_number_from_hex_string(i))
+            SUT.save_values_to_memory(starting, test_values)
+
+            Processor.execute_at_location(SUT, Helper.get_decimal_number_from_hex_string("300"))
+            SUT.display_data_from_range(Helper.get_decimal_number_from_hex_string("0000"), Helper.get_decimal_number_from_hex_string("007"))
+            SUT.display_data_from_range(Helper.get_decimal_number_from_hex_string("0100"), Helper.get_decimal_number_from_hex_string("0107"))
+            SUT.display_data_from_range(Helper.get_decimal_number_from_hex_string("0700"), Helper.get_decimal_number_from_hex_string("0707"))
+
+        correct_output = \
+            " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
+            " 300  A2  LDX      # 01 --  00 01 00 FF 00100000\n" \
+            " 302  A0  LDY      # 01 --  00 01 01 FF 00100000\n" \
+            " 304  A9  LDA      # 05 --  05 01 01 FF 00100000\n" \
+            " 306  85  STA    zpg 01 --  05 01 01 FF 00100000\n" \
+            " 308  8C  STY    abs 05 07  05 01 01 FF 00100000\n" \
+            " 30B  A1  LDA  x,ind 00 --  FF 01 01 FF 10100000\n" \
+            " 30D  86  STX    zpg 02 --  FF 01 01 FF 10100000\n" \
+            " 30F  A2  LDX      # 0A --  FF 0A 01 FF 00100000\n" \
+            " 311  8E  STX    abs 04 07  FF 0A 01 FF 00100000\n" \
+            " 314  B1  LDA  ind,y 01 --  66 0A 01 FF 00100000\n" \
+            " 316  00  BRK   impl -- --  66 0A 01 FC 00110100\n" \
+            "000   00 05 01 00 00 FF 00 00 \n" \
+            "100   00 11 22 33 44 55 66 77 \n" \
+            "700   00 00 00 00 0A 01 00 00 \n" \
+
+        self.maxDiff = None
+        self.assertEqual(correct_output, f.getvalue())
+
+    def test_example_run_9(self):
+        f = io.StringIO()
+        with redirect_stdout(f):
+            SUT = Memory()
+            starting = Helper.get_decimal_number_from_hex_string("300")
+            test_values = []
+            for i in "A9 60 8D ED FD A2 00 BD 18 03 20 ED FD E8 E0 03 90 F5 A9 8D 20 ED FD 00 1A 2B 3C".split(" "):
+                test_values.append(Helper.get_decimal_number_from_hex_string(i))
+            SUT.save_values_to_memory(starting, test_values)
+
+            Processor.execute_at_location(SUT, Helper.get_decimal_number_from_hex_string("300"))
+        correct_output = \
+            " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
+            " 300  A9  LDA      # 60 --  60 00 00 FF 00100000\n" \
+            " 302  8D  STA    abs ED FD  60 00 00 FF 00100000\n" \
+            " 305  A2  LDX      # 00 --  60 00 00 FF 00100010\n" \
+            " 307  BD  LDA  abs,x 18 03  1A 00 00 FF 00100000\n" \
+            " 30A  20  JSR    abs ED FD  1A 00 00 FD 00100000\n" \
+            "FDED  60  RTS   impl -- --  1A 00 00 FF 00100000\n" \
+            " 30D  E8  INX   impl -- --  1A 01 00 FF 00100000\n" \
+            " 30E  E0  CPX      # 03 --  1A 01 00 FF 10100000\n" \
+            " 310  90  BCC    rel F5 --  1A 01 00 FF 10100000\n" \
+            " 307  BD  LDA  abs,x 18 03  2B 01 00 FF 00100000\n" \
+            " 30A  20  JSR    abs ED FD  2B 01 00 FD 00100000\n" \
+            "FDED  60  RTS   impl -- --  2B 01 00 FF 00100000\n" \
+            " 30D  E8  INX   impl -- --  2B 02 00 FF 00100000\n" \
+            " 30E  E0  CPX      # 03 --  2B 02 00 FF 10100000\n" \
+            " 310  90  BCC    rel F5 --  2B 02 00 FF 10100000\n" \
+            " 307  BD  LDA  abs,x 18 03  3C 02 00 FF 00100000\n" \
+            " 30A  20  JSR    abs ED FD  3C 02 00 FD 00100000\n" \
+            "FDED  60  RTS   impl -- --  3C 02 00 FF 00100000\n" \
+            " 30D  E8  INX   impl -- --  3C 03 00 FF 00100000\n" \
+            " 30E  E0  CPX      # 03 --  3C 03 00 FF 00100011\n" \
+            " 310  90  BCC    rel F5 --  3C 03 00 FF 00100011\n" \
+            " 312  A9  LDA      # 8D --  8D 03 00 FF 10100001\n" \
+            " 314  20  JSR    abs ED FD  8D 03 00 FD 10100001\n" \
+            "FDED  60  RTS   impl -- --  8D 03 00 FF 10100001\n" \
+            " 317  00  BRK   impl -- --  8D 03 00 FC 10110101\n"
         self.maxDiff = None
         self.assertEqual(correct_output, f.getvalue())
 

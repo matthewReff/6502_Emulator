@@ -3,7 +3,7 @@ from OpCodeLookup import *
 
 
 class Memory:
-    FULL_BIT_MASK = 0xFF
+    FULL_BYTE_MASK = 0xFF
     NEGATIVE_BIT_MASK = 1 << 7
     OVERFLOW_BIT_MASK = 1 << 6
     DUMMY_BIT_MASK = 1 << 5
@@ -26,15 +26,19 @@ class Memory:
         print(" PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC")
 
     def display_registers(self, past_pc):
-        constructed_string = " "
-        constructed_string += Helper.get_hex_string_from_decimal_number(past_pc)
+        constructed_string = ""
+        pc_display = Helper.get_hex_string_from_decimal_number(past_pc)
+        while len(pc_display) < 4:
+            pc_display = " " + pc_display
+        constructed_string += pc_display
+
         constructed_string += "  "
         constructed_string += Helper.get_hex_string_from_decimal_number(self.opCode)
         constructed_string += "  "
         constructed_string += str(OpCodeLookup.lookupTable[self.opCode][0].name)
-        constructed_string += "   "
+        constructed_string += "  "
         address_spacing = str(OpCodeLookup.lookupTable[self.opCode][1].value[1])
-        while len(address_spacing) < 4:
+        while len(address_spacing) < 5:
             address_spacing = " " + address_spacing
         constructed_string += address_spacing
         constructed_string += " "
@@ -97,7 +101,7 @@ class Memory:
                 record_type = line[7:9]
                 num_bytes = Helper.get_decimal_number_from_hex_string(byte_count)
                 curr_start = 9
-                for i in range(0, num_bytes + 1):
+                for i in range(0, num_bytes):
                     temp = line[curr_start:curr_start+2]
                     curr_start += 2
                     values.append(Helper.get_decimal_number_from_hex_string(temp))

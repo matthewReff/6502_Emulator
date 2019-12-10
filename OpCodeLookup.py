@@ -141,7 +141,7 @@ class OpCodeLookup:
     lookupTable.update({Helper.get_decimal_number_from_hex_string("2C"): (OperationEnum.BIT, AddressingEnum.abs)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("4C"): (OperationEnum.JMP, AddressingEnum.abs)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("6C"): (OperationEnum.JMP, AddressingEnum.ind)})
-    lookupTable.update({Helper.get_decimal_number_from_hex_string("8C"): (OperationEnum.STY, AddressingEnum.ind)})
+    lookupTable.update({Helper.get_decimal_number_from_hex_string("8C"): (OperationEnum.STY, AddressingEnum.abs)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("AC"): (OperationEnum.LDY, AddressingEnum.abs)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("BC"): (OperationEnum.LDY, AddressingEnum.absX)})
     lookupTable.update({Helper.get_decimal_number_from_hex_string("CC"): (OperationEnum.CPY, AddressingEnum.abs)})

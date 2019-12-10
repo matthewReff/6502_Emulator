@@ -15,7 +15,7 @@ class Processor:
         #modify addresses to fit with addressing mode
 
         branched = False
-        arg1, arg2 = Processor.resolve_params(addressing_mode, param1, param2)
+        arg1, arg2 = Processor.resolve_params(memory, addressing_mode, param1, param2)
 
         if operation == OperationEnum.ASL:
             updated_bits = memory.NEGATIVE_BIT_MASK | memory.ZERO_BIT_MASK | memory.CARRY_BIT_MASK
@@ -29,7 +29,7 @@ class Processor:
 
             carry_bit = val >> 7
             value = val << 1
-            value &= memory.FULL_BIT_MASK
+            value &= Memory.FULL_BYTE_MASK
 
             if addressing_mode == AddressingEnum.A:
                 memory.registers["AC"] = value
@@ -172,7 +172,7 @@ class Processor:
                 memory.registers["SR"] |= memory.CARRY_BIT_MASK
 
             value = value << 1
-            lowest_bit_mask = memory.FULL_BIT_MASK ^ 1
+            lowest_bit_mask = Memory.FULL_BYTE_MASK ^ 1
             value &= lowest_bit_mask
             if old_carry != 0:
                 value |= 1
@@ -201,7 +201,7 @@ class Processor:
                 memory.registers["SR"] |= memory.CARRY_BIT_MASK
 
             value = value >> 1
-            highest_bit_mask = memory.FULL_BIT_MASK ^ (1 << 8)
+            highest_bit_mask = Memory.FULL_BYTE_MASK ^ (1 << 8)
             value &= highest_bit_mask
             if old_carry != 0:
                 value |= (1 << 7)
@@ -396,7 +396,7 @@ class Processor:
                 val -= 1
 
             new_val = Processor.add(memory, memory.registers["AC"], val, subtract=True, update_status=True)
-            memory.registers["AC"] = new_val
+            memory.registers["AC"], is_overflow = Helper.get_signed_byte_from_decimal_int(new_val)
 
         elif operation == OperationEnum.BIT:
             update_mask = Memory.NEGATIVE_BIT_MASK | Memory.ZERO_BIT_MASK | Memory.OVERFLOW_BIT_MASK
@@ -506,16 +506,16 @@ class Processor:
         Processor.clear_status_bits(memory, update_mask)
 
         val = 0
-        if AddressingEnum == AddressingEnum.imm:
+        if addressing_mode == AddressingEnum.imm:
             val = param1
         else:
             val = memory.mainMemory[param1]
 
-        Processor.add(memory, memory.registers[register], val, True)
+        temp = Processor.add(memory, memory.registers[register], val, True)
 
         # TODO rip off bandaid
-        if carry_bit == 0:
-            Processor.clear_status_bits(memory, Memory.NEGATIVE_BIT_MASK)
+        #if carry_bit == 0:
+        #    Processor.clear_status_bits(memory, Memory.NEGATIVE_BIT_MASK)
 
     @staticmethod
     def add(memory, num1, num2, subtract=False, update_status=True):
@@ -543,9 +543,10 @@ class Processor:
             if carry == 1:
                 memory.registers["SR"] |= Memory.CARRY_BIT_MASK
 
-        new_val, is_overflow = Helper.get_signed_byte_from_decimal_int(int(finished_string, 2))
-        Processor.is_zero(memory, new_val)
-        Processor.is_negative(memory, new_val)
+        new_val = Helper.get_decimal_int_from_signed_byte(int(finished_string, 2))
+        new_val_byte, is_overflow = Helper.get_signed_byte_from_decimal_int(new_val)
+        Processor.is_zero(memory, new_val_byte)
+        Processor.is_negative(memory, new_val_byte)
 
         return new_val
 
@@ -610,13 +611,31 @@ class Processor:
         elif addressing_mode == AddressingEnum.zpg:
             additional_args += 1
 
+        elif addressing_mode == AddressingEnum.zpgX:
+            additional_args += 1
+
+        elif addressing_mode == AddressingEnum.zpgY:
+            additional_args += 1
+
         elif addressing_mode == AddressingEnum.ind:
             additional_args += 2
+
+        elif addressing_mode == AddressingEnum.indY:
+            additional_args += 1
+
+        elif addressing_mode == AddressingEnum.xInd:
+            additional_args += 1
 
         elif addressing_mode == AddressingEnum.rel:
             additional_args += 1
 
         elif addressing_mode == AddressingEnum.abs:
+            additional_args += 2
+
+        elif addressing_mode == AddressingEnum.absX:
+            additional_args += 2
+
+        elif addressing_mode == AddressingEnum.absY:
             additional_args += 2
 
         if additional_args > 0:
@@ -627,21 +646,53 @@ class Processor:
         return additional_args, arg1, arg2
 
     @staticmethod
-    def resolve_params(addressing_mode, param1, param2):
+    def resolve_params(memory, addressing_mode, param1, param2):
+        # params are bytes
         arg1 = param1
         arg2 = param2
 
-        if addressing_mode == AddressingEnum.abs:
-            param1_byte, is_overflow = Helper.get_signed_byte_from_decimal_int(param1)
-            param2_byte, is_overflow = Helper.get_signed_byte_from_decimal_int(param2)
-            arg1 = Helper.combine_bytes(param1_byte, param2_byte)
+        modify_val = 0
+        if addressing_mode == AddressingEnum.abs or addressing_mode == AddressingEnum.absX or addressing_mode == AddressingEnum.absY:
+            arg1 = Helper.combine_bytes(param1, param2)
+            arg2 = None
+            if addressing_mode == AddressingEnum.absX:
+                modify_val = memory.registers["X"]
+            elif addressing_mode == AddressingEnum.absY:
+                modify_val = memory.registers["Y"]
+            arg1 += modify_val
+
+        elif addressing_mode == AddressingEnum.zpg or addressing_mode == AddressingEnum.zpgX or addressing_mode == AddressingEnum.zpgY:
+            val = param1
+            if addressing_mode == AddressingEnum.zpgX:
+                val += memory.registers["X"]
+            elif addressing_mode == AddressingEnum.zpgY:
+                val += memory.registers["Y"]
+            val &= Memory.FULL_BYTE_MASK
+            arg1 = val
 
         elif addressing_mode == AddressingEnum.ind:
             param1_byte, is_overflow = Helper.get_signed_byte_from_decimal_int(param1)
             param2_byte, is_overflow = Helper.get_signed_byte_from_decimal_int(param2)
             arg1 = Helper.combine_bytes(param1_byte, param2_byte)
 
+        elif addressing_mode == AddressingEnum.indY:
+            val = param1
+            lo_byte = memory.mainMemory[val]
+            hi_byte = memory.mainMemory[val + 1]
+            val = Helper.combine_bytes(lo_byte, hi_byte)
+            val += memory.registers["Y"]
+            arg1 = val
+
+        elif addressing_mode == AddressingEnum.xInd:
+            val = param1
+            val += memory.registers["X"]
+            val &= Memory.FULL_BYTE_MASK
+            lo_byte = memory.mainMemory[val]
+            hi_byte = memory.mainMemory[val + 1]
+            arg1 = Helper.combine_bytes(lo_byte, hi_byte)
+
         return arg1, arg2
+
 
     @staticmethod
     def generic_branch(memory, location_byte, mask, is_set):
