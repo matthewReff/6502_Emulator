@@ -1,5 +1,6 @@
 from enum import Enum, unique
 
+
 @unique
 class AddressingEnum(Enum):
     A = (0, "A")
@@ -15,3 +16,10 @@ class AddressingEnum(Enum):
     zpg = (10, "zpg")
     zpgX = (11, "zpg,x")
     zpgY = (12, "zpg,y")
+
+
+@unique
+class DataContext(Enum):
+    Value = 0
+    Index = 1
+    NONE = 2
