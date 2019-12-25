@@ -573,5 +573,62 @@ class TestPhaseII(unittest.TestCase):
         self.maxDiff = None
         self.assertEqual(correct_output, f.getvalue())
 
+    def test_example_run_10(self):
+        f = io.StringIO()
+        with redirect_stdout(f):
+            SUT = Memory()
+            starting = Helper.get_decimal_number_from_hex_string("300")
+            test_values = []
+            for i in "38 B0 05 EA EA EA 00 EA 30 F7 A9 40 69 40 70 F5".split(" "):
+                test_values.append(Helper.get_decimal_number_from_hex_string(i))
+            SUT.save_values_to_memory(starting, test_values)
+
+            Processor.execute_at_location(SUT, Helper.get_decimal_number_from_hex_string("300"))
+        correct_output = \
+           " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
+           " 300  38  SEC   impl -- --  00 00 00 FF 00100001\n" \
+           " 301  B0  BCS    rel 05 --  00 00 00 FF 00100001\n" \
+           " 308  30  BMI    rel F7 --  00 00 00 FF 00100001\n" \
+           " 30A  A9  LDA      # 40 --  40 00 00 FF 00100001\n" \
+           " 30C  69  ADC      # 40 --  81 00 00 FF 11100000\n" \
+           " 30E  70  BVS    rel F5 --  81 00 00 FF 11100000\n" \
+           " 305  EA  NOP   impl -- --  81 00 00 FF 11100000\n" \
+           " 306  00  BRK   impl -- --  81 00 00 FC 11110100\n"
+
+        self.maxDiff = None
+        self.assertEqual(correct_output, f.getvalue())
+
+    def test_example_run_11(self):
+        f = io.StringIO()
+        with redirect_stdout(f):
+            SUT = Memory()
+            starting = Helper.get_decimal_number_from_hex_string("200")
+            test_values = []
+            for i in "EA EA 20 00 08 EA 00".split(" "):
+                test_values.append(Helper.get_decimal_number_from_hex_string(i))
+            SUT.save_values_to_memory(starting, test_values)
+
+            starting = Helper.get_decimal_number_from_hex_string("800")
+            test_values = []
+            for i in "AD FE 01 AE FF 01 60 00".split(" "):
+                test_values.append(Helper.get_decimal_number_from_hex_string(i))
+            SUT.save_values_to_memory(starting, test_values)
+
+            Processor.execute_at_location(SUT, Helper.get_decimal_number_from_hex_string("200"))
+        correct_output = \
+            " PC  OPC  INS   AMOD OPRND  AC XR YR SP NV-BDIZC\n" \
+            " 200  EA  NOP   impl -- --  00 00 00 FF 00100000\n" \
+            " 201  EA  NOP   impl -- --  00 00 00 FF 00100000\n" \
+            " 202  20  JSR    abs 00 08  00 00 00 FD 00100000\n" \
+            " 800  AD  LDA    abs FE 01  04 00 00 FD 00100000\n" \
+            " 803  AE  LDX    abs FF 01  04 02 00 FD 00100000\n" \
+            " 806  60  RTS   impl -- --  04 02 00 FF 00100000\n" \
+            " 205  EA  NOP   impl -- --  04 02 00 FF 00100000\n" \
+            " 206  00  BRK   impl -- --  04 02 00 FC 00110100\n"
+
+        self.maxDiff = None
+        self.assertEqual(correct_output, f.getvalue())
+
+
 if __name__ == '__main__':
     unittest.main()
