@@ -9,7 +9,7 @@ Running:
 The program is run by invoking an installation of Python3, followed by Monitor.py, followed by
 an optional filename for data in the intex HEX format.
 EX:
-$ python3 Monitor.py {test1.obj}
+$ python3 Monitor.py testFiles/test1.obj
 
 Testing:
 
