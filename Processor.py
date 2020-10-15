@@ -12,6 +12,7 @@ class Processor:
 
     @staticmethod
     def ALU(memory, operation, addressing_mode, param1=None, param2=None):
+        """Process a given opcode using a decode table"""
         branched = False
         arg1, data_context = Processor.resolve_params(memory, addressing_mode, param1, param2)
 
@@ -478,10 +479,12 @@ class Processor:
 
     @staticmethod
     def generic_store(memory, register, param1):
+        """Store a register in a specified memory location"""
         memory.mainMemory[param1] = memory.registers[register]
 
     @staticmethod
     def generic_load(memory, register, param1, data_context):
+        """Fill a register with a value determined by the addressing mode"""
         update_mask = Memory.NEGATIVE_BIT_MASK | Memory.ZERO_BIT_MASK
         Processor.clear_status_bits(memory, update_mask)
 
@@ -497,6 +500,8 @@ class Processor:
 
     @staticmethod
     def generic_compare(memory, register, param1, data_context):
+        """Set status bits according to the comparison between a given
+register and value"""
         carry_bit = memory.registers["SR"] & Memory.CARRY_BIT_MASK
         update_mask = Memory.ZERO_BIT_MASK | Memory.NEGATIVE_BIT_MASK | Memory.CARRY_BIT_MASK
         Processor.clear_status_bits(memory, update_mask)
@@ -517,7 +522,7 @@ class Processor:
 
     @staticmethod
     def add(memory, num1, num2, subtract=False, update_status=True):
-
+        """Add/subtract two signed bytes and set status bits as needed"""
         first_negative = Processor.is_negative(memory, num1)
         second_negative = Processor.is_negative(memory, num2)
 
@@ -550,11 +555,14 @@ class Processor:
 
     @staticmethod
     def clear_status_bits(memory, mask_to_clear):
+        """Clear the selected bit from the status register"""
         clear_mask = 0xFF ^ mask_to_clear
         memory.registers["SR"] &= clear_mask
 
     @staticmethod
     def is_negative(memory, value):
+        """Return if a signed byte is negative and set the bit in the status register
+according"""
         if value >> 7 & 1 == 1:
             memory.registers["SR"] |= memory.NEGATIVE_BIT_MASK
             return True
@@ -564,6 +572,7 @@ class Processor:
 
     @staticmethod
     def is_zero(memory, value):
+        """Return if signed byte is zero and set the bit in the status register accordingly"""
         if value == 0:
             memory.registers["SR"] |= memory.ZERO_BIT_MASK
             return True
@@ -573,6 +582,8 @@ class Processor:
 
     @staticmethod
     def execute_at_location(memory, starting_location):
+        """Retrieve and execute instructions starting at a given address,
+Incrementing the program counter as needed"""
         memory.initialize_registers()
         memory.registers["PC"] = starting_location
         current_instruction = OperationEnum.NONE
@@ -595,6 +606,8 @@ class Processor:
 
     @staticmethod
     def get_additional_args(memory, addressing_mode):
+        """given an addressing mode, adjust the PC to the next instruction
+and read the needed parameters"""
         base_PC = memory.registers["PC"]
         additional_args = 0
         arg1 = None
@@ -645,6 +658,8 @@ class Processor:
 
     @staticmethod
     def resolve_params(memory, addressing_mode, param1, param2):
+        """Given an addressing mode and parameters sent to the alu, convert
+to more friendly values (add offsets, etc.)"""
         # params are bytes
         arg1 = param1
         context = DataContext.Index
@@ -695,6 +710,7 @@ class Processor:
 
     @staticmethod
     def generic_branch(memory, location_byte, mask, is_set):
+        """branch to a given location if the specific status bit is low/high"""
         branched = False
         location = Helper.get_decimal_int_from_signed_byte(location_byte)
         if (memory.registers["SR"] & mask != 0) == is_set:

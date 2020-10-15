@@ -6,6 +6,8 @@ from Processor import *
 class Monitor:
     @staticmethod
     def main():
+        """ Gets user input, translates to values actually usable to call functions, then calls
+            those functions on the emulator"""
         emulator = Memory()
         emulator.initialize_registers()
         if len(sys.argv) == 2:
@@ -42,6 +44,8 @@ class Monitor:
 
     @staticmethod
     def prompt_for_input():
+        """ get a normal value from user and return true, or get an exit code and
+return false"""
         try:
             entered_string = input("> ")
         except EOFError:
